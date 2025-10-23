@@ -1,4 +1,4 @@
-# Ruem App
+# RuemAI App
 
 ### Project structure
 
