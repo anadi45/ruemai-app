@@ -14,17 +14,17 @@ export default async function Layout({ children }: LayoutProps) {
       <header className="fixed top-0 left-0 z-50 hidden w-full flex-row justify-between p-6 md:flex">
         <div className="scale-100 transition-transform duration-300 hover:scale-110">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logo} alt={`${companyName} Logo`} className="block size-6 dark:hidden" />
+          {/* <img src={logo} alt={`${companyName} Logo`} className="block size-6 dark:hidden" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {/* <img
             src={logoDark ?? logo}
             alt={`${companyName} Logo`}
             className="hidden size-6 dark:block"
-          />
+          /> */}
         </div>
-        <span className="text-foreground font-mono text-xs font-bold tracking-wider uppercase">
+        {/* <span className="text-foreground font-mono text-xs font-bold tracking-wider uppercase">
           {companyName}
-        </span>
+        </span> */}
       </header>
 
       {children}
