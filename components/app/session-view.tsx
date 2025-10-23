@@ -83,15 +83,15 @@ export const SessionView = ({
       {/* Main Layout - Two Column */}
       <div className="flex h-screen">
         {/* Left Side - Video Tiles */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-hidden">
           <TileLayout chatOpen={false} />
         </div>
 
         {/* Right Side - Chat Transcript */}
-        <div className="w-80 border-l border-border bg-background/95 backdrop-blur-sm h-screen">
+        <div className="w-80 border-l border-border bg-background/95 backdrop-blur-sm flex-shrink-0">
           <div className="h-full flex flex-col">
             {/* Transcript Header */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-border flex-shrink-0">
               <h3 className="text-sm font-medium text-foreground">Transcript</h3>
             </div>
             

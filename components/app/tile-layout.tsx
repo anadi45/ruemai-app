@@ -23,7 +23,7 @@ const classNames = {
   // GRID
   // 2 Columns x 3 Rows
   grid: [
-    'h-full w-full max-w-2xl',
+    'h-full w-full max-w-2xl mx-auto',
     'grid gap-x-2 place-content-center',
     'grid-cols-[1fr_1fr] grid-rows-[90px_1fr_90px]',
   ],
@@ -91,9 +91,9 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-50">
+    <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
       <div className="relative h-full w-full flex items-center justify-center">
-        <div className={cn(classNames.grid)}>
+        <div className={cn(classNames.grid, 'max-w-full max-h-full')}>
           {/* Agent */}
           <div
             className={cn([
