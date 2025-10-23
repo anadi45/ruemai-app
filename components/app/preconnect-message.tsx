@@ -8,27 +8,13 @@ import { cn } from '@/lib/utils';
 const MotionMessage = motion.create('p');
 
 const VIEW_MOTION_PROPS = {
-  variants: {
-    visible: {
-      opacity: 1,
-      transition: {
-        ease: 'easeIn',
-        duration: 0.5,
-        delay: 0.8,
-      },
-    },
-    hidden: {
-      opacity: 0,
-      transition: {
-        ease: 'easeIn',
-        duration: 0.5,
-        delay: 0,
-      },
-    },
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: {
+    duration: 0.5,
+    delay: 0.8,
   },
-  initial: 'hidden',
-  animate: 'visible',
-  exit: 'hidden',
 };
 
 interface PreConnectMessageProps {

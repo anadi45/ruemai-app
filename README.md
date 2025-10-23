@@ -34,7 +34,6 @@ npm dev
 
 And open http://localhost:3000 in your browser.
 
-
 ## Configuration
 
 This starter is designed to be flexible so you can adapt it to your specific agent use case. You can easily configure it to work with different types of inputs and outputs:
@@ -43,18 +42,18 @@ This starter is designed to be flexible so you can adapt it to your specific age
 
 ```ts
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'LiveKit',
-  pageTitle: 'LiveKit Voice Agent',
-  pageDescription: 'A voice agent built with LiveKit',
+  companyName: 'Ruem',
+  pageTitle: 'Ruem Voice Agent',
+  pageDescription: 'A voice agent built with Ruem',
 
   supportsChatInput: true,
   supportsVideoInput: true,
   supportsScreenShare: true,
   isPreConnectBufferEnabled: true,
 
-  logo: '/lk-logo.svg',
+  logo: '/ruem-logo.svg',
   accent: '#002cf2',
-  logoDark: '/lk-logo-dark.svg',
+  logoDark: '/ruem-logo-dark.svg',
   accentDark: '#1fd5f9',
   startButtonText: 'Start call',
 

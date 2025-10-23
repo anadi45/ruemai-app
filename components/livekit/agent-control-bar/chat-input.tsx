@@ -43,10 +43,7 @@ export function ChatInput({
 
   return (
     <div className="flex w-full items-start">
-      <form
-        onSubmit={handleSubmit}
-        className="flex grow items-end gap-2 rounded-md text-sm"
-      >
+      <form onSubmit={handleSubmit} className="flex grow items-end gap-2 rounded-md text-sm">
         <input
           autoFocus
           ref={inputRef}
@@ -55,7 +52,7 @@ export function ChatInput({
           disabled={!isAgentAvailable}
           placeholder="Type a message..."
           onChange={(e) => setMessage(e.target.value)}
-          className="h-8 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-input bg-background focus:ring-ring h-8 flex-1 rounded-md border px-3 py-1 text-sm focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Button
           size="icon"

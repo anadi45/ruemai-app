@@ -12,9 +12,9 @@ export default async function ComponentsLayout({ children }: { children: React.R
       <div className="bg-muted/20 min-h-svh p-8">
         <div className="mx-auto max-w-3xl space-y-8">
           <header className="space-y-2">
-            <h1 className="text-5xl font-bold tracking-tight">LiveKit UI</h1>
+            <h1 className="text-5xl font-bold tracking-tight">Ruem UI</h1>
             <p className="text-muted-foreground max-w-80 leading-tight text-pretty">
-              A set of UI components for building LiveKit-powered voice experiences.
+              A set of UI components for building Ruem-powered voice experiences.
             </p>
             <p className="text-muted-foreground max-w-prose text-balance">
               Built with{' '}

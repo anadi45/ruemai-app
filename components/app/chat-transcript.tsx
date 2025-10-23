@@ -64,7 +64,7 @@ export function ChatTranscript({
               message,
               messageOrigin,
               hasBeenEdited,
-              from: from?.identity
+              from: from?.identity,
             });
 
             return (

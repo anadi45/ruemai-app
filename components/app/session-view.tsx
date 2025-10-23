@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import { useChat } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
@@ -11,7 +12,6 @@ import {
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
 import { ChatInput } from '@/components/livekit/agent-control-bar/chat-input';
-import { useChat } from '@livekit/components-react';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -83,31 +83,26 @@ export const SessionView = ({
       {/* Main Layout - Two Column */}
       <div className="flex h-screen">
         {/* Left Side - Video Tiles */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className="relative flex-1 overflow-hidden">
           <TileLayout chatOpen={false} />
         </div>
 
         {/* Right Side - Chat Transcript */}
-        <div className="w-80 border-l border-border bg-background/95 backdrop-blur-sm flex-shrink-0">
-          <div className="h-full flex flex-col">
+        <div className="border-border bg-background/95 w-80 flex-shrink-0 border-l backdrop-blur-sm">
+          <div className="flex h-full flex-col">
             {/* Transcript Header */}
-            <div className="p-4 border-b border-border flex-shrink-0">
-              <h3 className="text-sm font-medium text-foreground">Transcript</h3>
+            <div className="border-border flex-shrink-0 border-b p-4">
+              <h3 className="text-foreground text-sm font-medium">Transcript</h3>
             </div>
-            
+
             {/* Transcript Content */}
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="p-4">
-                  <ChatTranscript
-                    hidden={false}
-                    messages={messages}
-                    className="space-y-3"
-                  />
+                  <ChatTranscript hidden={false} messages={messages} className="space-y-3" />
                 </div>
               </ScrollArea>
             </div>
-
           </div>
         </div>
       </div>
@@ -122,16 +117,12 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
-          
+
           {/* Text Input - Always Visible */}
           <div className="mb-4">
-            <ChatInput
-              chatOpen={true}
-              isAgentAvailable={true}
-              onSend={send}
-            />
+            <ChatInput chatOpen={true} isAgentAvailable={true} onSend={send} />
           </div>
-          
+
           <AgentControlBar controls={controls} onChatOpenChange={setChatOpen} />
         </div>
       </MotionBottom>

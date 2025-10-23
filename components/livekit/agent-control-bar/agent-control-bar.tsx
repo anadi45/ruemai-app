@@ -56,7 +56,6 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-
   const handleToggleTranscript = useCallback(
     (open: boolean) => {
       setChatOpen(open);

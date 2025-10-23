@@ -92,8 +92,8 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-      <div className="relative h-full w-full flex items-center justify-center">
-        <div className={cn(classNames.grid, 'max-w-full max-h-full')}>
+      <div className="relative flex h-full w-full items-center justify-center">
+        <div className={cn(classNames.grid, 'max-h-full max-w-full')}>
           {/* Agent */}
           <div
             className={cn([
