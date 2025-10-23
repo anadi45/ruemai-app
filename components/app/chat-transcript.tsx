@@ -11,23 +11,9 @@ const CONTAINER_MOTION_PROPS = {
   variants: {
     hidden: {
       opacity: 0,
-      transition: {
-        ease: 'easeOut',
-        duration: 0.3,
-        staggerChildren: 0.1,
-        staggerDirection: -1,
-      },
     },
     visible: {
       opacity: 1,
-      transition: {
-        delay: 0.2,
-        ease: 'easeOut',
-        duration: 0.3,
-        stagerDelay: 0.2,
-        staggerChildren: 0.1,
-        staggerDirection: 1,
-      },
     },
   },
   initial: 'hidden',
@@ -58,6 +44,10 @@ export function ChatTranscript({
   messages = [],
   ...props
 }: ChatTranscriptProps & Omit<HTMLMotionProps<'div'>, 'ref'>) {
+  // Log messages when they change
+  console.log('🎯 ChatTranscript rendering with messages:', messages);
+  console.log('👁️ ChatTranscript hidden:', hidden);
+
   return (
     <AnimatePresence>
       {!hidden && (
@@ -66,6 +56,16 @@ export function ChatTranscript({
             const locale = navigator?.language ?? 'en-US';
             const messageOrigin = from?.isLocal ? 'local' : 'remote';
             const hasBeenEdited = !!editTimestamp;
+
+            // Log individual message details
+            console.log('💬 Rendering message:', {
+              id,
+              timestamp,
+              message,
+              messageOrigin,
+              hasBeenEdited,
+              from: from?.identity
+            });
 
             return (
               <MotionChatEntry

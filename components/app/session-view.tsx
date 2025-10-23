@@ -77,27 +77,38 @@ export const SessionView = ({
 
   return (
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
-      {/* Chat Transcript */}
-      <div
-        className={cn(
-          'fixed inset-0 grid grid-cols-1 grid-rows-1',
-          !chatOpen && 'pointer-events-none'
-        )}
-      >
-        <Fade top className="absolute inset-x-4 top-0 h-40" />
-        <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-          <ChatTranscript
-            hidden={!chatOpen}
-            messages={messages}
-            className="mx-auto max-w-2xl space-y-3 transition-opacity duration-300 ease-out"
-          />
-        </ScrollArea>
+      {/* Main Layout - Two Column */}
+      <div className="flex h-full">
+        {/* Left Side - Video Tiles */}
+        <div className="flex-1 relative">
+          <TileLayout chatOpen={false} />
+        </div>
+
+        {/* Right Side - Chat Transcript */}
+        <div className="w-80 border-l border-border bg-background/95 backdrop-blur-sm">
+          <div className="h-full flex flex-col">
+            {/* Transcript Header */}
+            <div className="p-4 border-b border-border">
+              <h3 className="text-sm font-medium text-foreground">Live Transcript</h3>
+            </div>
+            
+            {/* Transcript Content */}
+            <div className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  <ChatTranscript
+                    hidden={false}
+                    messages={messages}
+                    className="space-y-3"
+                  />
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Tile Layout */}
-      <TileLayout chatOpen={chatOpen} />
-
-      {/* Bottom */}
+      {/* Bottom Control Bar */}
       <MotionBottom
         {...BOTTOM_VIEW_MOTION_PROPS}
         className="fixed inset-x-3 bottom-0 z-50 md:inset-x-12"

@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 const MotionContainer = motion.create('div');
 
 const ANIMATION_TRANSITION = {
-  type: 'spring',
   stiffness: 675,
   damping: 75,
   mass: 1,
@@ -24,7 +23,7 @@ const classNames = {
   // GRID
   // 2 Columns x 3 Rows
   grid: [
-    'h-full w-full',
+    'h-full w-full max-w-2xl',
     'grid gap-x-2 place-content-center',
     'grid-cols-[1fr_1fr] grid-rows-[90px_1fr_90px]',
   ],
@@ -92,8 +91,8 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
-      <div className="relative mx-auto h-full max-w-2xl px-4 md:px-0">
+    <div className="pointer-events-none absolute inset-0 z-50">
+      <div className="relative h-full w-full flex items-center justify-center">
         <div className={cn(classNames.grid)}>
           {/* Agent */}
           <div

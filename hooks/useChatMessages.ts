@@ -32,7 +32,14 @@ export function useChatMessages() {
       ...transcriptions.map((transcription) => transcriptionToChatMessage(transcription, room)),
       ...chat.chatMessages,
     ];
-    return merged.sort((a, b) => a.timestamp - b.timestamp);
+    const sorted = merged.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Log transcript messages to console
+    console.log('📝 Chat Messages:', sorted);
+    console.log('🎤 Transcriptions:', transcriptions);
+    console.log('💬 Chat Messages:', chat.chatMessages);
+    
+    return sorted;
   }, [transcriptions, chat.chatMessages, room]);
 
   return mergedTranscriptions;
