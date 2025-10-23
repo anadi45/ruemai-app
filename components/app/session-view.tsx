@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import { useChat } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
@@ -12,6 +12,7 @@ import {
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
 import { ChatInput } from '@/components/livekit/agent-control-bar/chat-input';
+import { CameraPreview } from '@/components/livekit/camera-preview';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -79,6 +80,9 @@ export const SessionView = ({
 
   return (
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
+      {/* Camera Preview - Top Left */}
+      <CameraPreview />
+
       {/* Main Layout - Two Column */}
       <div className="flex h-screen">
         {/* Left Side - Video Tiles */}

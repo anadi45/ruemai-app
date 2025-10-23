@@ -83,7 +83,8 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
 
   const isCameraEnabled = cameraTrack && !cameraTrack.publication.isMuted;
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
-  const hasSecondTile = isCameraEnabled || isScreenShareEnabled;
+  // Only show second tile for screen share, not camera (camera is now in top-left preview)
+  const hasSecondTile = isScreenShareEnabled;
 
   const animationDelay = chatOpen ? 0 : 0.15;
   const isAvatar = agentVideoTrack !== undefined;
@@ -195,13 +196,13 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
               !chatOpen && classNames.secondTileChatClosed,
             ])}
           >
-            {/* Camera & Screen Share */}
+            {/* Screen Share Only (Camera moved to top-left preview) */}
             <AnimatePresence>
-              {((cameraTrack && isCameraEnabled) || (screenShareTrack && isScreenShareEnabled)) && (
+              {screenShareTrack && isScreenShareEnabled && (
                 <MotionContainer
-                  key="camera"
+                  key="screenShare"
                   layout="position"
-                  layoutId="camera"
+                  layoutId="screenShare"
                   initial={{
                     opacity: 0,
                     scale: 0,
@@ -221,9 +222,9 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                   className="drop-shadow-lg/20"
                 >
                   <VideoTrack
-                    trackRef={cameraTrack || screenShareTrack}
-                    width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
-                    height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
+                    trackRef={screenShareTrack}
+                    width={screenShareTrack?.publication.dimensions?.width ?? 0}
+                    height={screenShareTrack?.publication.dimensions?.height ?? 0}
                     className="bg-muted aspect-square w-[90px] rounded-md object-cover"
                   />
                 </MotionContainer>

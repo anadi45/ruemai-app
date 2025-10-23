@@ -1,8 +1,7 @@
 'use client';
 
-import { type HTMLAttributes, useCallback, useState } from 'react';
+import { type HTMLAttributes, useCallback } from 'react';
 import { Track } from 'livekit-client';
-import { useRemoteParticipants } from '@livekit/components-react';
 import { PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
 import { useSession } from '@/components/app/session-provider';
 import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
@@ -23,7 +22,6 @@ export interface ControlBarControls {
 export interface AgentControlBarProps extends UseInputControlsProps {
   controls?: ControlBarControls;
   onDisconnect?: () => void;
-  onChatOpenChange?: (open: boolean) => void;
   onDeviceError?: (error: { source: Track.Source; error: Error }) => void;
 }
 
@@ -36,10 +34,8 @@ export function AgentControlBar({
   className,
   onDisconnect,
   onDeviceError,
-  onChatOpenChange,
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
-  const participants = useRemoteParticipants();
   const publishPermissions = usePublishPermissions();
   const { isSessionActive, endSession } = useSession();
 
@@ -54,7 +50,6 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-
   const handleDisconnect = useCallback(async () => {
     endSession();
     onDisconnect?.();
@@ -67,8 +62,6 @@ export function AgentControlBar({
     camera: controls?.camera ?? publishPermissions.camera,
     chat: controls?.chat ?? publishPermissions.data,
   };
-
-  const isAgentAvailable = participants.some((p) => p.isAgent);
 
   return (
     <div
@@ -123,7 +116,6 @@ export function AgentControlBar({
               onPressedChange={screenShareToggle.toggle}
             />
           )}
-
         </div>
 
         {/* Disconnect */}
