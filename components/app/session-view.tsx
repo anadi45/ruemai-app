@@ -10,6 +10,8 @@ import {
   AgentControlBar,
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
+import { ChatInput } from '@/components/livekit/agent-control-bar/chat-input';
+import { useChat } from '@livekit/components-react';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -65,6 +67,7 @@ export const SessionView = ({
   useDebugMode({ enabled: IN_DEVELOPMENT });
 
   const messages = useChatMessages();
+  const { send } = useChat();
   const [chatOpen, setChatOpen] = useState(false);
 
   const controls: ControlBarControls = {
@@ -103,6 +106,15 @@ export const SessionView = ({
                   />
                 </div>
               </ScrollArea>
+            </div>
+
+            {/* Text Input Area */}
+            <div className="p-4 border-t border-border">
+              <ChatInput
+                chatOpen={true}
+                isAgentAvailable={true}
+                onSend={send}
+              />
             </div>
           </div>
         </div>

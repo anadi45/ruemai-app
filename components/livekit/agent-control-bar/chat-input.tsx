@@ -1,27 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
 import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr';
 import { Button } from '@/components/livekit/button';
 
-const MOTION_PROPS = {
-  variants: {
-    hidden: {
-      height: 0,
-      opacity: 0,
-      marginBottom: 0,
-    },
-    visible: {
-      height: 'auto',
-      opacity: 1,
-      marginBottom: 12,
-    },
-  },
-  initial: 'hidden',
-  transition: {
-    duration: 0.3,
-    ease: 'easeOut',
-  },
-};
+// Removed motion props for persistent input
 
 interface ChatInputProps {
   chatOpen: boolean;
@@ -61,25 +42,20 @@ export function ChatInput({
   }, [chatOpen, isAgentAvailable]);
 
   return (
-    <motion.div
-      inert={!chatOpen}
-      {...MOTION_PROPS}
-      animate={chatOpen ? 'visible' : 'hidden'}
-      className="border-input/50 flex w-full items-start overflow-hidden border-b"
-    >
+    <div className="flex w-full items-start">
       <form
         onSubmit={handleSubmit}
-        className="mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm"
+        className="flex grow items-end gap-2 rounded-md text-sm"
       >
         <input
           autoFocus
           ref={inputRef}
           type="text"
           value={message}
-          disabled={!chatOpen}
-          placeholder="Type something..."
+          disabled={!isAgentAvailable}
+          placeholder="Type a message..."
           onChange={(e) => setMessage(e.target.value)}
-          className="h-8 flex-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-8 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Button
           size="icon"
@@ -87,7 +63,7 @@ export function ChatInput({
           disabled={isDisabled}
           variant={isDisabled ? 'secondary' : 'primary'}
           title={isSending ? 'Sending...' : 'Send'}
-          className="self-start"
+          className="h-8 w-8"
         >
           {isSending ? (
             <SpinnerIcon className="animate-spin" weight="bold" />
@@ -96,6 +72,6 @@ export function ChatInput({
           )}
         </Button>
       </form>
-    </motion.div>
+    </div>
   );
 }
