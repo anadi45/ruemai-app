@@ -3,11 +3,10 @@
 import { type HTMLAttributes, useCallback, useState } from 'react';
 import { Track } from 'livekit-client';
 import { useRemoteParticipants } from '@livekit/components-react';
-import { ChatTextIcon, PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
+import { PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
 import { useSession } from '@/components/app/session-provider';
 import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
 import { Button } from '@/components/livekit/button';
-import { Toggle } from '@/components/livekit/toggle';
 import { cn } from '@/lib/utils';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
@@ -41,7 +40,6 @@ export function AgentControlBar({
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
   const participants = useRemoteParticipants();
-  const [chatOpen, setChatOpen] = useState(false);
   const publishPermissions = usePublishPermissions();
   const { isSessionActive, endSession } = useSession();
 
@@ -56,13 +54,6 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleToggleTranscript = useCallback(
-    (open: boolean) => {
-      setChatOpen(open);
-      onChatOpenChange?.(open);
-    },
-    [onChatOpenChange, setChatOpen]
-  );
 
   const handleDisconnect = useCallback(async () => {
     endSession();
@@ -133,16 +124,6 @@ export function AgentControlBar({
             />
           )}
 
-          {/* Toggle Transcript */}
-          <Toggle
-            size="icon"
-            variant="secondary"
-            aria-label="Toggle transcript"
-            pressed={chatOpen}
-            onPressedChange={handleToggleTranscript}
-          >
-            <ChatTextIcon weight="bold" />
-          </Toggle>
         </div>
 
         {/* Disconnect */}

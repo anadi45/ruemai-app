@@ -68,7 +68,6 @@ export const SessionView = ({
 
   const messages = useChatMessages();
   const { send } = useChat();
-  const [chatOpen, setChatOpen] = useState(false);
 
   const controls: ControlBarControls = {
     leave: true,
@@ -123,7 +122,7 @@ export const SessionView = ({
             <ChatInput chatOpen={true} isAgentAvailable={true} onSend={send} />
           </div>
 
-          <AgentControlBar controls={controls} onChatOpenChange={setChatOpen} />
+          <AgentControlBar controls={controls} />
         </div>
       </MotionBottom>
     </section>
