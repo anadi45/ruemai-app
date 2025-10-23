@@ -108,14 +108,6 @@ export const SessionView = ({
               </ScrollArea>
             </div>
 
-            {/* Text Input Area */}
-            <div className="p-4 border-t border-border">
-              <ChatInput
-                chatOpen={true}
-                isAgentAvailable={true}
-                onSend={send}
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -130,6 +122,16 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
+          
+          {/* Text Input - Always Visible */}
+          <div className="mb-4">
+            <ChatInput
+              chatOpen={true}
+              isAgentAvailable={true}
+              onSend={send}
+            />
+          </div>
+          
           <AgentControlBar controls={controls} onChatOpenChange={setChatOpen} />
         </div>
       </MotionBottom>

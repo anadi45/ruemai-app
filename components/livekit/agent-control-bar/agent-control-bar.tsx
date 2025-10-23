@@ -2,14 +2,13 @@
 
 import { type HTMLAttributes, useCallback, useState } from 'react';
 import { Track } from 'livekit-client';
-import { useChat, useRemoteParticipants } from '@livekit/components-react';
+import { useRemoteParticipants } from '@livekit/components-react';
 import { ChatTextIcon, PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
 import { useSession } from '@/components/app/session-provider';
 import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
 import { Button } from '@/components/livekit/button';
 import { Toggle } from '@/components/livekit/toggle';
 import { cn } from '@/lib/utils';
-import { ChatInput } from './chat-input';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
 import { TrackSelector } from './track-selector';
@@ -41,7 +40,6 @@ export function AgentControlBar({
   onChatOpenChange,
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
-  const { send } = useChat();
   const participants = useRemoteParticipants();
   const [chatOpen, setChatOpen] = useState(false);
   const publishPermissions = usePublishPermissions();
@@ -58,9 +56,6 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleSendMessage = async (message: string) => {
-    await send(message);
-  };
 
   const handleToggleTranscript = useCallback(
     (open: boolean) => {
@@ -94,15 +89,6 @@ export function AgentControlBar({
       )}
       {...props}
     >
-      {/* Chat Input */}
-      {visibleControls.chat && (
-        <ChatInput
-          chatOpen={chatOpen}
-          isAgentAvailable={isAgentAvailable}
-          onSend={handleSendMessage}
-        />
-      )}
-
       <div className="flex gap-1">
         <div className="flex grow gap-1">
           {/* Toggle Microphone */}
