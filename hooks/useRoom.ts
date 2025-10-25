@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Room, RoomEvent, TokenSource, RpcError, RpcInvocationData } from 'livekit-client';
 import { AppConfig } from '@/app-config';
 import { toastAlert } from '@/components/livekit/alert-toast';
+import { useFileAttachments } from './useFileAttachments';
 
 export function useRoom(appConfig: AppConfig) {
   const aborted = useRef(false);
   const room = useMemo(() => new Room(), []);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const { addFileAttachment } = useFileAttachments();
 
   useEffect(() => {
     function onDisconnected() {
@@ -40,6 +42,30 @@ export function useRoom(appConfig: AppConfig) {
             });
           } catch (error) {
             throw new RpcError(1, "Could not retrieve user location");
+          }
+        }
+      );
+
+      // Register RPC method for file attachments
+      room.registerRpcMethod(
+        'attachFile',
+        async (data: RpcInvocationData) => {
+          try {
+            const fileInfo = JSON.parse(data.payload);
+            console.log('📎 File attachment received:', fileInfo);
+            
+            // Add file attachment to context
+            addFileAttachment({
+              filename: fileInfo.filename,
+              fileSize: fileInfo.fileSize,
+              fileExtension: fileInfo.fileExtension,
+              filePath: fileInfo.filePath,
+              contentPreview: fileInfo.contentPreview,
+            });
+            
+            return JSON.stringify({ success: true });
+          } catch (error) {
+            throw new RpcError(1, "Could not process file attachment");
           }
         }
       );

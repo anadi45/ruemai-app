@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { FileAttachment } from './file-attachment';
+import { useFileAttachments } from '@/hooks/useFileAttachments';
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   /** The locale to use for the timestamp. */
@@ -28,6 +30,12 @@ export const ChatEntry = ({
 }: ChatEntryProps) => {
   const time = new Date(timestamp);
   const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
+  const { attachments } = useFileAttachments();
+  
+  // Find recent attachments (within last 5 seconds of this message)
+  const recentAttachments = attachments.filter(attachment => 
+    Math.abs(attachment.timestamp - timestamp) < 5000
+  );
 
   return (
     <li
@@ -48,14 +56,28 @@ export const ChatEntry = ({
           {time.toLocaleTimeString(locale, { timeStyle: 'short' })}
         </span>
       </header>
-      <span
+      <div
         className={cn(
           'max-w-4/5 rounded-[20px]',
           messageOrigin === 'local' ? 'bg-muted ml-auto p-2' : 'mr-auto'
         )}
       >
-        {message}
-      </span>
+        <span>{message}</span>
+        {recentAttachments.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {recentAttachments.map((attachment) => (
+              <FileAttachment
+                key={attachment.id}
+                filename={attachment.filename}
+                fileSize={attachment.fileSize}
+                fileExtension={attachment.fileExtension}
+                contentPreview={attachment.contentPreview}
+                className="text-xs"
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </li>
   );
 };
