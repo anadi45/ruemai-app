@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Room, RoomEvent, TokenSource } from 'livekit-client';
+import { Room, RoomEvent, TokenSource, RpcError, RpcInvocationData } from 'livekit-client';
 import { AppConfig } from '@/app-config';
 import { toastAlert } from '@/components/livekit/alert-toast';
 
@@ -20,12 +20,41 @@ export function useRoom(appConfig: AppConfig) {
       });
     }
 
+    // Register RPC method for getting user location
+    function registerRpcMethods() {
+      room.registerRpcMethod(
+        'getUserLocation',
+        async (data: RpcInvocationData) => {
+          try {
+            let params = JSON.parse(data.payload);
+            const position: GeolocationPosition = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: params.highAccuracy ?? false,
+                timeout: data.responseTimeout,
+              });
+            });
+
+            return JSON.stringify({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          } catch (error) {
+            throw new RpcError(1, "Could not retrieve user location");
+          }
+        }
+      );
+    }
+
     room.on(RoomEvent.Disconnected, onDisconnected);
     room.on(RoomEvent.MediaDevicesError, onMediaDevicesError);
+    
+    // Register RPC methods when room is ready
+    room.on(RoomEvent.Connected, registerRpcMethods);
 
     return () => {
       room.off(RoomEvent.Disconnected, onDisconnected);
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
+      room.off(RoomEvent.Connected, registerRpcMethods);
     };
   }, [room]);
 
