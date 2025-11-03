@@ -16,8 +16,10 @@ import { CameraPreview } from '@/components/livekit/camera-preview';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
+import { useDemoAttachments } from '@/hooks/useDemoAttachments';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
+import { DemoAttachment } from '@/components/livekit/demo-attachment';
 
 const MotionBottom = motion.create('div');
 
@@ -69,6 +71,10 @@ export const SessionView = ({
 
   const messages = useChatMessages();
   const { send } = useChat();
+  const { demos } = useDemoAttachments();
+
+  // Get the latest demo URL
+  const latestDemo = demos.length > 0 ? demos[demos.length - 1] : null;
 
   const controls: ControlBarControls = {
     leave: true,
@@ -87,7 +93,7 @@ export const SessionView = ({
       <div className="flex h-screen">
         {/* Left Side - Video Tiles */}
         <div className="relative flex-1 overflow-hidden">
-          <TileLayout chatOpen={false} />
+          <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
         </div>
 
         {/* Right Side - Chat Transcript */}
@@ -120,6 +126,13 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
+
+          {/* Demo Iframe - Above Chat Input */}
+          {latestDemo && (
+            <div className="mb-4">
+              <DemoAttachment liveUrl={latestDemo.liveUrl} />
+            </div>
+          )}
 
           {/* Text Input - Always Visible */}
           <div className="mb-4">

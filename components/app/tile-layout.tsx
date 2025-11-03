@@ -70,9 +70,10 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
+  hasActiveDemo?: boolean;
 }
 
-export function TileLayout({ chatOpen }: TileLayoutProps) {
+export function TileLayout({ chatOpen, hasActiveDemo = false }: TileLayoutProps) {
   const {
     state: agentState,
     audioTrack: agentAudioTrack,
@@ -105,7 +106,7 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
             ])}
           >
             <AnimatePresence mode="popLayout">
-              {!isAvatar && (
+              {!isAvatar && !hasActiveDemo && (
                 // Audio Agent
                 <MotionContainer
                   key="agent"
