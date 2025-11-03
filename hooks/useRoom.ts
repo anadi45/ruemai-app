@@ -3,12 +3,14 @@ import { Room, RoomEvent, TokenSource, RpcError, RpcInvocationData } from 'livek
 import { AppConfig } from '@/app-config';
 import { toastAlert } from '@/components/livekit/alert-toast';
 import { useFileAttachments } from './useFileAttachments';
+import { useDemoAttachments } from './useDemoAttachments';
 
 export function useRoom(appConfig: AppConfig) {
   const aborted = useRef(false);
   const room = useMemo(() => new Room(), []);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const { addFileAttachment } = useFileAttachments();
+  const { addDemoAttachment } = useDemoAttachments();
 
   useEffect(() => {
     function onDisconnected() {
@@ -69,6 +71,26 @@ export function useRoom(appConfig: AppConfig) {
           }
         }
       );
+
+      // Register RPC method for demo attachments
+      room.registerRpcMethod(
+        'demo',
+        async (data: RpcInvocationData) => {
+          try {
+            const demoInfo = JSON.parse(data.payload);
+            console.log('🎬 Demo attachment received:', demoInfo);
+            
+            // Add demo attachment to context
+            addDemoAttachment({
+              liveUrl: demoInfo.liveUrl,
+            });
+            
+            return JSON.stringify({ success: true });
+          } catch (error) {
+            throw new RpcError(1, "Could not process demo attachment");
+          }
+        }
+      );
     }
 
     room.on(RoomEvent.Disconnected, onDisconnected);
@@ -82,7 +104,7 @@ export function useRoom(appConfig: AppConfig) {
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
       room.off(RoomEvent.Connected, registerRpcMethods);
     };
-  }, [room]);
+  }, [room, addFileAttachment, addDemoAttachment]);
 
   useEffect(() => {
     return () => {
