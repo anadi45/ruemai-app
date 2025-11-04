@@ -1,4 +1,4 @@
-import { Button } from '@/components/livekit/button';
+import { Button } from '@/components/ui/button';
 
 function WelcomeImage() {
   return (

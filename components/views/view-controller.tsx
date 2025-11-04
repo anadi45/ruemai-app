@@ -3,9 +3,9 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useRoomContext } from '@livekit/components-react';
-import { useSession } from '@/components/app/session-provider';
-import { SessionView } from '@/components/app/session-view';
-import { WelcomeView } from '@/components/app/welcome-view';
+import { useSession } from '@/components/providers/session-provider';
+import { SessionView } from '@/components/views/session-view';
+import { WelcomeView } from '@/components/views/welcome-view';
 
 const MotionWelcomeView = motion.create(WelcomeView);
 const MotionSessionView = motion.create(SessionView);

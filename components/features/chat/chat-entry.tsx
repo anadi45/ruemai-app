@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { FileAttachment } from './file-attachment';
-import { DemoAttachment } from './demo-attachment';
-import { useFileAttachments } from '@/hooks/useFileAttachments';
+import { DemoAttachment } from '@/components/features/attachments/demo-attachment';
+import { FileAttachment } from '@/components/features/attachments/file-attachment';
 import { useDemoAttachments } from '@/hooks/useDemoAttachments';
+import { useFileAttachments } from '@/hooks/useFileAttachments';
+import { cn } from '@/lib/utils';
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   /** The locale to use for the timestamp. */
@@ -34,16 +34,14 @@ export const ChatEntry = ({
   const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
   const { attachments } = useFileAttachments();
   const { demos } = useDemoAttachments();
-  
+
   // Find recent attachments (within last 5 seconds of this message)
-  const recentAttachments = attachments.filter(attachment => 
-    Math.abs(attachment.timestamp - timestamp) < 5000
+  const recentAttachments = attachments.filter(
+    (attachment) => Math.abs(attachment.timestamp - timestamp) < 5000
   );
-  
+
   // Find recent demo attachments (within last 5 seconds of this message)
-  const recentDemos = demos.filter(demo => 
-    Math.abs(demo.timestamp - timestamp) < 5000
-  );
+  const recentDemos = demos.filter((demo) => Math.abs(demo.timestamp - timestamp) < 5000);
 
   return (
     <li
@@ -88,11 +86,7 @@ export const ChatEntry = ({
         {recentDemos.length > 0 && (
           <div className="mt-2 space-y-2">
             {recentDemos.map((demo) => (
-              <DemoAttachment
-                key={demo.id}
-                liveUrl={demo.liveUrl}
-                className="text-xs"
-              />
+              <DemoAttachment key={demo.id} liveUrl={demo.liveUrl} className="text-xs" />
             ))}
           </div>
         )}

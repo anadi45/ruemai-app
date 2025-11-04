@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Room, RoomEvent, TokenSource, RpcError, RpcInvocationData } from 'livekit-client';
 import { AppConfig } from '@/app-config';
-import { toastAlert } from '@/components/livekit/alert-toast';
+import { toastAlert } from '@/components/ui/alert-toast';
 import { useFileAttachments } from './useFileAttachments';
 import { useDemoAttachments } from './useDemoAttachments';
 

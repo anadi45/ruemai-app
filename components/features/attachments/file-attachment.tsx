@@ -62,27 +62,23 @@ export const FileAttachment = ({
   return (
     <div
       className={cn(
-        'border-border bg-muted/50 hover:bg-muted/70 flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer',
+        'border-border bg-muted/50 hover:bg-muted/70 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
         className
       )}
       onClick={handleDownload}
       {...props}
     >
       <div className="text-2xl">{getFileIcon(fileExtension)}</div>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm truncate">{filename}</div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium">{filename}</div>
         <div className="text-muted-foreground text-xs">
           {formatFileSize(fileSize)} • {fileExtension.toUpperCase()}
         </div>
         {contentPreview && (
-          <div className="text-muted-foreground text-xs mt-1 line-clamp-2">
-            {contentPreview}
-          </div>
+          <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">{contentPreview}</div>
         )}
       </div>
-      <div className="text-muted-foreground text-xs">
-        Click to download
-      </div>
+      <div className="text-muted-foreground text-xs">Click to download</div>
     </div>
   );
 };

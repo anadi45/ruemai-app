@@ -3,9 +3,9 @@
 import { type HTMLAttributes, useCallback } from 'react';
 import { Track } from 'livekit-client';
 import { PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
-import { useSession } from '@/components/app/session-provider';
-import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
-import { Button } from '@/components/livekit/button';
+import { TrackToggle } from '@/components/features/agent-control-bar/track-toggle';
+import { useSession } from '@/components/providers/session-provider';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';

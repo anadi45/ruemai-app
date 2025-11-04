@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr';
-import { Button } from '@/components/livekit/button';
+import { Button } from '@/components/ui/button';
 
 // Removed motion props for persistent input
 

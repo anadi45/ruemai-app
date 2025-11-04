@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReceivedChatMessage } from '@livekit/components-react';
-import { ChatEntry } from '@/components/livekit/chat-entry';
+import { ChatEntry } from '@/components/features/chat/chat-entry';
 
 interface ChatTranscriptProps {
   hidden?: boolean;

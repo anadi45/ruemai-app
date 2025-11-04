@@ -4,22 +4,22 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { useChat } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
-import { ChatTranscript } from '@/components/app/chat-transcript';
-import { PreConnectMessage } from '@/components/app/preconnect-message';
-import { TileLayout } from '@/components/app/tile-layout';
 import {
   AgentControlBar,
   type ControlBarControls,
-} from '@/components/livekit/agent-control-bar/agent-control-bar';
-import { ChatInput } from '@/components/livekit/agent-control-bar/chat-input';
-import { CameraPreview } from '@/components/livekit/camera-preview';
+} from '@/components/features/agent-control-bar/agent-control-bar';
+import { DemoAttachment } from '@/components/features/attachments/demo-attachment';
+import { ChatInput } from '@/components/features/chat/chat-input';
+import { ChatTranscript } from '@/components/features/chat/chat-transcript';
+import { PreConnectMessage } from '@/components/features/chat/preconnect-message';
+import { CameraPreview } from '@/components/features/media/camera-preview';
+import { TileLayout } from '@/components/features/media/tile-layout';
+import { ScrollArea } from '@/components/ui/scroll-area/scroll-area';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
 import { useDemoAttachments } from '@/hooks/useDemoAttachments';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '../livekit/scroll-area/scroll-area';
-import { DemoAttachment } from '@/components/livekit/demo-attachment';
 
 const MotionBottom = motion.create('div');
 
@@ -113,7 +113,11 @@ export const SessionView = ({
         {/* Right Side - Video Tiles or Demo */}
         <div className="relative flex-1 overflow-hidden">
           {latestDemo ? (
-            <DemoAttachment liveUrl={latestDemo.liveUrl} className="h-full w-full rounded-none border-0" fullScreen />
+            <DemoAttachment
+              liveUrl={latestDemo.liveUrl}
+              className="h-full w-full rounded-none border-0"
+              fullScreen
+            />
           ) : (
             <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
           )}
