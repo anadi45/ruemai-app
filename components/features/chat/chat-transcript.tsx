@@ -10,10 +10,6 @@ interface ChatTranscriptProps {
 }
 
 export function ChatTranscript({ hidden = false, messages = [], className }: ChatTranscriptProps) {
-  // Log messages when they change
-  console.log('🎯 ChatTranscript rendering with messages:', messages);
-  console.log('👁️ ChatTranscript hidden:', hidden);
-
   if (hidden) {
     return null;
   }
