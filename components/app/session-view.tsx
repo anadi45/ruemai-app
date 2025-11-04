@@ -90,7 +90,7 @@ export const SessionView = ({
       <CameraPreview />
 
       {/* Main Layout - Two Column */}
-      <div className="flex h-screen">
+      <div className="flex h-[calc(100vh-180px)]">
         {/* Left Side - Chat Transcript */}
         <div className="border-border bg-background/95 w-80 flex-shrink-0 border-r backdrop-blur-sm">
           <div className="flex h-full flex-col">
