@@ -25,7 +25,7 @@ export function useRoom(appConfig: AppConfig) {
     }
 
     // RPC method names to track
-    const RPC_METHODS = ['getUserLocation', 'attachFile', 'demo'] as const;
+    const RPC_METHODS = ['getUserLocation', 'presentFileToUser', 'demo'] as const;
 
     // Unregister RPC methods if they exist
     function unregisterRpcMethods() {
@@ -67,7 +67,7 @@ export function useRoom(appConfig: AppConfig) {
 
       // Register RPC method for file attachments
       room.registerRpcMethod(
-        'attachFile',
+        'presentFileToUser',
         async (data: RpcInvocationData) => {
           try {
             const fileInfo = JSON.parse(data.payload);
