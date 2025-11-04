@@ -24,8 +24,25 @@ export function useRoom(appConfig: AppConfig) {
       });
     }
 
+    // RPC method names to track
+    const RPC_METHODS = ['getUserLocation', 'attachFile', 'demo'] as const;
+
+    // Unregister RPC methods if they exist
+    function unregisterRpcMethods() {
+      RPC_METHODS.forEach((method) => {
+        try {
+          room.unregisterRpcMethod(method);
+        } catch (error) {
+          // Ignore errors if method wasn't registered
+        }
+      });
+    }
+
     // Register RPC method for getting user location
     function registerRpcMethods() {
+      // Unregister any existing methods first to avoid duplicate registration errors
+      unregisterRpcMethods();
+
       room.registerRpcMethod(
         'getUserLocation',
         async (data: RpcInvocationData) => {
@@ -103,6 +120,8 @@ export function useRoom(appConfig: AppConfig) {
       room.off(RoomEvent.Disconnected, onDisconnected);
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
       room.off(RoomEvent.Connected, registerRpcMethods);
+      // Unregister RPC methods on cleanup
+      unregisterRpcMethods();
     };
   }, [room, addFileAttachment, addDemoAttachment]);
 
