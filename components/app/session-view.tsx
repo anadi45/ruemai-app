@@ -110,9 +110,13 @@ export const SessionView = ({
           </div>
         </div>
 
-        {/* Right Side - Video Tiles */}
+        {/* Right Side - Video Tiles or Demo */}
         <div className="relative flex-1 overflow-hidden">
-          <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
+          {latestDemo ? (
+            <DemoAttachment liveUrl={latestDemo.liveUrl} className="h-full w-full rounded-none border-0" fullScreen />
+          ) : (
+            <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
+          )}
         </div>
       </div>
 
@@ -126,13 +130,6 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
-
-          {/* Demo Iframe - Above Chat Input */}
-          {latestDemo && (
-            <div className="mb-4">
-              <DemoAttachment liveUrl={latestDemo.liveUrl} />
-            </div>
-          )}
 
           {/* Text Input - Always Visible */}
           <div className="mb-4">

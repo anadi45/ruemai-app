@@ -6,13 +6,35 @@ import { cn } from '@/lib/utils';
 export interface DemoAttachmentProps {
   liveUrl: string;
   className?: string;
+  fullScreen?: boolean;
 }
 
 export const DemoAttachment = ({
   liveUrl,
   className,
+  fullScreen = false,
   ...props
 }: DemoAttachmentProps & React.HTMLAttributes<HTMLDivElement>) => {
+  if (fullScreen) {
+    return (
+      <div
+        className={cn(
+          'bg-background h-full w-full overflow-hidden',
+          className
+        )}
+        {...props}
+      >
+        <iframe
+          src={liveUrl}
+          className="h-full w-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title="Live Demo Browser Automation"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
