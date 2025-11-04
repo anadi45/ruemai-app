@@ -91,13 +91,8 @@ export const SessionView = ({
 
       {/* Main Layout - Two Column */}
       <div className="flex h-screen">
-        {/* Left Side - Video Tiles */}
-        <div className="relative flex-1 overflow-hidden">
-          <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
-        </div>
-
-        {/* Right Side - Chat Transcript */}
-        <div className="border-border bg-background/95 w-80 flex-shrink-0 border-l backdrop-blur-sm">
+        {/* Left Side - Chat Transcript */}
+        <div className="border-border bg-background/95 w-80 flex-shrink-0 border-r backdrop-blur-sm">
           <div className="flex h-full flex-col">
             {/* Transcript Header */}
             <div className="border-border flex-shrink-0 border-b p-4">
@@ -113,6 +108,11 @@ export const SessionView = ({
               </ScrollArea>
             </div>
           </div>
+        </div>
+
+        {/* Right Side - Video Tiles */}
+        <div className="relative flex-1 overflow-hidden">
+          <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
         </div>
       </div>
 
