@@ -51,12 +51,26 @@ export const FileAttachment = ({
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const link = document.createElement('a');
     link.href = `/api/files?filename=${encodeURIComponent(filename)}`;
     link.download = filename;
     link.target = '_blank';
+    link.style.display = 'none';
+    
+    // Append to body to ensure it works in all browsers
+    document.body.appendChild(link);
     link.click();
+    
+    // Clean up after a short delay
+    setTimeout(() => {
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
+    }, 100);
   };
 
   return (
