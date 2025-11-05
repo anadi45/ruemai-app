@@ -71,6 +71,9 @@ export const FileAttachment = ({
     }, 100);
   };
 
+  // Extract product name by removing the extension
+  const productName = filename.replace(fileExtension, '');
+
   return (
     <div
       className={cn(
@@ -82,9 +85,9 @@ export const FileAttachment = ({
     >
       <div className="text-2xl">{getFileIcon(fileExtension)}</div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">{filename}</div>
+        <div className="truncate text-sm font-medium">{productName}</div>
         <div className="text-muted-foreground text-xs">
-          {formatFileSize(fileSize)} • {fileExtension.toUpperCase()}
+          {formatFileSize(fileSize)}
         </div>
       </div>
       <div className="text-muted-foreground text-xs">Click to download</div>
