@@ -18,6 +18,12 @@ export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   name?: string;
   /** Whether the message has been edited. */
   hasBeenEdited?: boolean;
+  /** The message ID for attachment matching */
+  messageId?: string;
+  /** Map of file IDs to message IDs for one-to-one matching */
+  fileToMessageMap?: Map<string, string>;
+  /** Map of demo IDs to message IDs for one-to-one matching */
+  demoToMessageMap?: Map<string, string>;
 }
 
 export const ChatEntry = ({
@@ -27,6 +33,9 @@ export const ChatEntry = ({
   message,
   messageOrigin,
   hasBeenEdited = false,
+  messageId,
+  fileToMessageMap,
+  demoToMessageMap,
   className,
   ...props
 }: ChatEntryProps) => {
@@ -35,33 +44,18 @@ export const ChatEntry = ({
   const { attachments } = useFileAttachments();
   const { demos } = useDemoAttachments();
 
-  // Find recent attachments (within last 10 seconds of this message)
+  // Find file attachments that are matched to this message (one-to-one mapping)
   // Only show attachments for agent messages (remote), not user messages (local)
   const recentAttachments =
-    messageOrigin === 'remote'
-      ? attachments.filter((attachment) => Math.abs(attachment.timestamp - timestamp) < 10000)
+    messageOrigin === 'remote' && messageId && fileToMessageMap
+      ? attachments.filter((attachment) => fileToMessageMap.get(attachment.id) === messageId)
       : [];
 
-  // Find demo attachments that should be shown with this message
+  // Find demo attachments that are matched to this message (one-to-one mapping)
   // Only show demo attachments for agent messages (remote), not user messages (local)
-  // Match demos more strictly: only if message mentions demo AND within 15 seconds, OR if within 10 seconds
-  const messageLower = message.toLowerCase();
-  const mentionsDemo =
-    messageLower.includes('demo') ||
-    messageLower.includes('showing') ||
-    messageLower.includes('browser');
   const recentDemos =
-    messageOrigin === 'remote'
-      ? demos.filter((demo) => {
-          const timeDiff = Math.abs(demo.timestamp - timestamp);
-          // Only match if:
-          // 1. Message mentions demo AND demo is within 15 seconds, OR
-          // 2. Demo is within 10 seconds (closest message gets it)
-          if (mentionsDemo) {
-            return timeDiff < 15000;
-          }
-          return timeDiff < 10000;
-        })
+    messageOrigin === 'remote' && messageId && demoToMessageMap
+      ? demos.filter((demo) => demoToMessageMap.get(demo.id) === messageId)
       : [];
 
   return (

@@ -105,6 +105,41 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
     return map;
   }, [history]);
 
+  // Calculate which message each file should be attached to (one-to-one mapping)
+  const fileToMessageMap = useMemo(() => {
+    const map = new Map<string, string>(); // file.id -> message.id
+
+    // Get all messages and files from the unified array
+    const messages = history.items.filter((item) => item.type === 'message') as Array<
+      Extract<TimelineItem, { type: 'message' }>
+    >;
+    const files = history.items.filter((item) => item.type === 'file') as Array<
+      Extract<TimelineItem, { type: 'file' }>
+    >;
+
+    // Match files to closest messages (within 10 seconds)
+    files.forEach((file) => {
+      const closestMessage = messages
+        .filter((msg) => !msg.data.from?.isLocal)
+        .reduce(
+          (closest, msg) => {
+            const msgDiff = Math.abs(file.timestamp.getTime() - msg.timestamp.getTime());
+            if (msgDiff >= 10000) return closest; // Outside time window
+            if (!closest) return msg;
+            const closestDiff = Math.abs(file.timestamp.getTime() - closest.timestamp.getTime());
+            return msgDiff < closestDiff ? msg : closest;
+          },
+          null as Extract<TimelineItem, { type: 'message' }> | null
+        );
+
+      if (closestMessage) {
+        map.set(file.data.id, closestMessage.data.id);
+      }
+    });
+
+    return map;
+  }, [history]);
+
   // Timeline is already sorted, just use it directly
   const timelineItems = history.items;
 
@@ -143,13 +178,13 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       const messageOrigin = message.from?.isLocal ? 'local' : 'remote';
                       const hasBeenEdited = !!message.editTimestamp;
 
-                      // Find attachments that were sent close to this message (within 10 seconds)
+                      // Find file attachments that are matched to this message (one-to-one mapping)
                       const recentFiles = timelineItems
                         .filter(
                           (i) =>
                             i.type === 'file' &&
                             messageOrigin === 'remote' &&
-                            Math.abs(i.timestamp.getTime() - item.timestamp.getTime()) < 10000
+                            fileToMessageMap.get(i.data.id) === message.id
                         )
                         .map((i) => (i.type === 'file' ? i : null))
                         .filter((i): i is Extract<TimelineItem, { type: 'file' }> => i !== null);
@@ -241,15 +276,8 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                     } else if (item.type === 'file') {
                       // Show standalone file attachments that weren't associated with a message
                       const file = item.data;
-                      // Check if this file was already shown with a message
-                      const wasShownWithMessage = timelineItems.some(
-                        (i) =>
-                          i.type === 'message' &&
-                          !i.data.from?.isLocal &&
-                          Math.abs(i.timestamp.getTime() - item.timestamp.getTime()) < 10000
-                      );
-
-                      if (wasShownWithMessage) {
+                      // Check if this file was already matched to a message
+                      if (fileToMessageMap.has(file.id)) {
                         return null;
                       }
 
