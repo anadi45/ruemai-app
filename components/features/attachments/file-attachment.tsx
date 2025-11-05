@@ -7,7 +7,6 @@ export interface FileAttachmentProps {
   filename: string;
   fileSize: number;
   fileExtension: string;
-  contentPreview?: string;
   className?: string;
 }
 
@@ -15,7 +14,6 @@ export const FileAttachment = ({
   filename,
   fileSize,
   fileExtension,
-  contentPreview,
   className,
   ...props
 }: FileAttachmentProps & React.HTMLAttributes<HTMLDivElement>) => {
@@ -88,9 +86,6 @@ export const FileAttachment = ({
         <div className="text-muted-foreground text-xs">
           {formatFileSize(fileSize)} • {fileExtension.toUpperCase()}
         </div>
-        {contentPreview && (
-          <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">{contentPreview}</div>
-        )}
       </div>
       <div className="text-muted-foreground text-xs">Click to download</div>
     </div>

@@ -83,7 +83,6 @@ export const ChatEntry = ({
                 filename={attachment.filename}
                 fileSize={attachment.fileSize}
                 fileExtension={attachment.fileExtension}
-                contentPreview={attachment.contentPreview}
                 className="text-xs"
               />
             ))}
