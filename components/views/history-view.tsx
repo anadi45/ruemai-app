@@ -4,9 +4,9 @@ import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
 import type { ReceivedChatMessage } from '@livekit/components-react';
 import { FileAttachment } from '@/components/features/attachments/file-attachment';
-import { ChatEntry } from '@/components/features/chat/chat-entry';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area/scroll-area';
+import { cn } from '@/lib/utils';
 
 const MotionHistoryView = motion.create('div');
 
@@ -84,16 +84,16 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="mx-auto max-w-4xl p-6">
-              <div className="space-y-4">
-                {timelineItems.length === 0 ? (
-                  <div className="text-muted-foreground flex items-center justify-center py-12 text-center">
-                    <div>
-                      <div className="mb-2 text-4xl">💬</div>
-                      <p className="text-sm">No conversation history</p>
-                    </div>
+              {timelineItems.length === 0 ? (
+                <div className="text-muted-foreground flex items-center justify-center py-12 text-center">
+                  <div>
+                    <div className="mb-2 text-4xl">💬</div>
+                    <p className="text-sm">No conversation history</p>
                   </div>
-                ) : (
-                  timelineItems.map((item, index) => {
+                </div>
+              ) : (
+                <ul className="space-y-4">
+                  {timelineItems.map((item, index) => {
                     if (item.type === 'message') {
                       const message = item.data;
                       const messageOrigin = message.from?.isLocal ? 'local' : 'remote';
@@ -113,57 +113,77 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                             )
                           : [];
 
+                      const time = new Date(message.timestamp);
+                      const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
+
                       return (
-                        <div key={`message-${message.id}`}>
-                          <ChatEntry
-                            locale={locale}
-                            timestamp={message.timestamp}
-                            message={message.message}
-                            messageOrigin={messageOrigin}
-                            hasBeenEdited={hasBeenEdited}
-                          />
-                          {/* Show attachments inline with the message */}
-                          {recentFiles.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                              {recentFiles.map((file) => (
-                                <FileAttachment
-                                  key={file.id}
-                                  filename={file.filename}
-                                  fileSize={file.fileSize}
-                                  fileExtension={file.fileExtension}
-                                  className="text-xs"
-                                />
-                              ))}
-                            </div>
-                          )}
-                          {recentDemos.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                              {recentDemos.map((demo) => (
-                                <div
-                                  key={demo.id}
-                                  className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="text-2xl">🎬</div>
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-primary font-semibold">
-                                          Live Demo
-                                        </span>
-                                        <span className="bg-primary/20 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                                          DEMO
-                                        </span>
-                                      </div>
-                                      <div className="text-muted-foreground mt-0.5 text-xs">
-                                        Browser automation was performed
+                        <li
+                          key={`message-${message.id}`}
+                          title={title}
+                          data-lk-message-origin={messageOrigin}
+                          className={cn('group flex w-full flex-col gap-0.5')}
+                        >
+                          <header
+                            className={cn(
+                              'text-muted-foreground flex items-center gap-2 text-sm',
+                              messageOrigin === 'local' ? 'flex-row-reverse' : 'text-left'
+                            )}
+                          >
+                            <span className="font-mono text-xs opacity-0 transition-opacity ease-linear group-hover:opacity-100">
+                              {hasBeenEdited && '*'}
+                              {time.toLocaleTimeString(locale, { timeStyle: 'short' })}
+                            </span>
+                          </header>
+                          <div
+                            className={cn(
+                              'max-w-4/5 rounded-[20px]',
+                              messageOrigin === 'local' ? 'bg-muted ml-auto p-2' : 'mr-auto'
+                            )}
+                          >
+                            <span>{message.message}</span>
+                            {/* Show attachments inline with the message */}
+                            {recentFiles.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {recentFiles.map((file) => (
+                                  <FileAttachment
+                                    key={file.id}
+                                    filename={file.filename}
+                                    fileSize={file.fileSize}
+                                    fileExtension={file.fileExtension}
+                                    className="text-xs"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            {recentDemos.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {recentDemos.map((demo) => (
+                                  <div
+                                    key={demo.id}
+                                    className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="text-2xl">🎬</div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-primary font-semibold">
+                                            Live Demo
+                                          </span>
+                                          <span className="bg-primary/20 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                                            DEMO
+                                          </span>
+                                        </div>
+                                        <div className="text-muted-foreground mt-0.5 text-xs">
+                                          Browser automation was performed
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </li>
                       );
                     } else if (item.type === 'file') {
                       // Show standalone file attachments that weren't associated with a message
@@ -222,9 +242,9 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       );
                     }
                     return null;
-                  })
-                )}
-              </div>
+                  })}
+                </ul>
+              )}
             </div>
           </ScrollArea>
         </div>
