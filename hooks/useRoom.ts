@@ -78,7 +78,6 @@ export function useRoom(appConfig: AppConfig) {
               filename: fileInfo.filename,
               fileSize: fileInfo.fileSize,
               fileExtension: fileInfo.fileExtension,
-              filePath: fileInfo.filePath,
             });
             
             return JSON.stringify({ success: true });
