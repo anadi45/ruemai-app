@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filename = searchParams.get('filename');
-    
+
     if (!filename) {
       return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
     }
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     // Security: Only allow files from the storage/actions directory
     const allowedPath = join(process.cwd(), '..', 'ruemai-server', 'storage', 'actions');
     const filePath = join(allowedPath, filename);
-    
+
     // Verify the file is within the allowed directory
     if (!filePath.startsWith(allowedPath)) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     try {
       const fileBuffer = await readFile(filePath);
       const contentType = getContentType(filename);
-      
+
       return new NextResponse(fileBuffer, {
         headers: {
           'Content-Type': contentType,
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
 function getContentType(filename: string): string {
   const extension = filename.split('.').pop()?.toLowerCase();
-  
+
   switch (extension) {
     case 'pdf':
       return 'application/pdf';

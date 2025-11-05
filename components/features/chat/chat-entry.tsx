@@ -37,17 +37,17 @@ export const ChatEntry = ({
 
   // Find recent attachments (within last 5 seconds of this message)
   // Only show attachments for agent messages (remote), not user messages (local)
-  const recentAttachments = messageOrigin === 'remote' 
-    ? attachments.filter(
-        (attachment) => Math.abs(attachment.timestamp - timestamp) < 5000
-      )
-    : [];
+  const recentAttachments =
+    messageOrigin === 'remote'
+      ? attachments.filter((attachment) => Math.abs(attachment.timestamp - timestamp) < 5000)
+      : [];
 
   // Find recent demo attachments (within last 5 seconds of this message)
   // Only show demo attachments for agent messages (remote), not user messages (local)
-  const recentDemos = messageOrigin === 'remote'
-    ? demos.filter((demo) => Math.abs(demo.timestamp - timestamp) < 5000)
-    : [];
+  const recentDemos =
+    messageOrigin === 'remote'
+      ? demos.filter((demo) => Math.abs(demo.timestamp - timestamp) < 5000)
+      : [];
 
   return (
     <li

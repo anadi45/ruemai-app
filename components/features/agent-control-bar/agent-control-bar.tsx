@@ -6,6 +6,10 @@ import { PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
 import { TrackToggle } from '@/components/features/agent-control-bar/track-toggle';
 import { useSession } from '@/components/providers/session-provider';
 import { Button } from '@/components/ui/button';
+import type { ConversationHistory } from '@/components/views/history-view';
+import { useChatMessages } from '@/hooks/useChatMessages';
+import { useDemoAttachments } from '@/hooks/useDemoAttachments';
+import { useFileAttachments } from '@/hooks/useFileAttachments';
 import { cn } from '@/lib/utils';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
@@ -37,7 +41,10 @@ export function AgentControlBar({
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
   const publishPermissions = usePublishPermissions();
-  const { isSessionActive, endSession } = useSession();
+  const { isSessionActive, endSession, saveHistory } = useSession();
+  const messages = useChatMessages();
+  const { attachments } = useFileAttachments();
+  const { demos } = useDemoAttachments();
 
   const {
     micTrackRef,
@@ -51,9 +58,17 @@ export function AgentControlBar({
   } = useInputControls({ onDeviceError, saveUserChoices });
 
   const handleDisconnect = useCallback(async () => {
+    // Capture conversation history before ending session
+    const history: ConversationHistory = {
+      messages: [...messages],
+      fileAttachments: [...attachments],
+      demoAttachments: [...demos],
+    };
+    saveHistory(history);
+
     endSession();
     onDisconnect?.();
-  }, [endSession, onDisconnect]);
+  }, [endSession, onDisconnect, messages, attachments, demos, saveHistory]);
 
   const visibleControls = {
     leave: controls?.leave ?? true,

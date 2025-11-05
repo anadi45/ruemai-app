@@ -52,17 +52,17 @@ export const FileAttachment = ({
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const link = document.createElement('a');
     link.href = `/api/files?filename=${encodeURIComponent(filename)}`;
     link.download = filename;
     link.target = '_blank';
     link.style.display = 'none';
-    
+
     // Append to body to ensure it works in all browsers
     document.body.appendChild(link);
     link.click();
-    
+
     // Clean up after a short delay
     setTimeout(() => {
       if (link.parentNode) {
@@ -86,9 +86,7 @@ export const FileAttachment = ({
       <div className="text-2xl">{getFileIcon(fileExtension)}</div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{productName}</div>
-        <div className="text-muted-foreground text-xs">
-          {formatFileSize(fileSize)}
-        </div>
+        <div className="text-muted-foreground text-xs">{formatFileSize(fileSize)}</div>
       </div>
       <div className="text-muted-foreground text-xs">Click to download</div>
     </div>
