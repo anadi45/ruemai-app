@@ -42,16 +42,25 @@ export const ChatEntry = ({
       ? attachments.filter((attachment) => Math.abs(attachment.timestamp - timestamp) < 10000)
       : [];
 
-  // Find recent demo attachments (within last 30 seconds of this message, or if message mentions demo)
+  // Find demo attachments that should be shown with this message
   // Only show demo attachments for agent messages (remote), not user messages (local)
+  // Match demos more strictly: only if message mentions demo AND within 15 seconds, OR if within 10 seconds
   const messageLower = message.toLowerCase();
-  const mentionsDemo = messageLower.includes('demo') || messageLower.includes('showing');
+  const mentionsDemo =
+    messageLower.includes('demo') ||
+    messageLower.includes('showing') ||
+    messageLower.includes('browser');
   const recentDemos =
     messageOrigin === 'remote'
       ? demos.filter((demo) => {
           const timeDiff = Math.abs(demo.timestamp - timestamp);
-          // Match if within 30 seconds OR if message mentions demo and demo was added within 60 seconds
-          return timeDiff < 30000 || (mentionsDemo && timeDiff < 60000);
+          // Only match if:
+          // 1. Message mentions demo AND demo is within 15 seconds, OR
+          // 2. Demo is within 10 seconds (closest message gets it)
+          if (mentionsDemo) {
+            return timeDiff < 15000;
+          }
+          return timeDiff < 10000;
         })
       : [];
 

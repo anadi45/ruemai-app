@@ -58,11 +58,41 @@ export function AgentControlBar({
   } = useInputControls({ onDeviceError, saveUserChoices });
 
   const handleDisconnect = useCallback(async () => {
-    // Capture conversation history before ending session
+    // Capture conversation history before ending session - build unified timeline array
+    const items: ConversationHistory['items'] = [
+      // Add all messages
+      ...messages.map((msg) => ({
+        type: 'message' as const,
+        data: msg,
+        timestamp: new Date(msg.timestamp),
+      })),
+      // Add all file attachments
+      ...attachments.map((file) => ({
+        type: 'file' as const,
+        data: {
+          id: file.id,
+          filename: file.filename,
+          fileSize: file.fileSize,
+          fileExtension: file.fileExtension,
+        },
+        timestamp: new Date(file.timestamp),
+      })),
+      // Add all demo attachments
+      ...demos.map((demo) => ({
+        type: 'demo' as const,
+        data: {
+          id: demo.id,
+          liveUrl: demo.liveUrl,
+        },
+        timestamp: new Date(demo.timestamp),
+      })),
+    ];
+
+    // Sort by timestamp
+    items.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
     const history: ConversationHistory = {
-      messages: [...messages],
-      fileAttachments: [...attachments],
-      demoAttachments: [...demos],
+      items,
     };
     saveHistory(history);
 

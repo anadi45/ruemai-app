@@ -19,20 +19,29 @@ const VIEW_MOTION_PROPS = {
   },
 };
 
+export type TimelineItem =
+  | { type: 'message'; data: ReceivedChatMessage; timestamp: Date }
+  | {
+      type: 'file';
+      data: {
+        id: string;
+        filename: string;
+        fileSize: number;
+        fileExtension: string;
+      };
+      timestamp: Date;
+    }
+  | {
+      type: 'demo';
+      data: {
+        id: string;
+        liveUrl: string;
+      };
+      timestamp: Date;
+    };
+
 export interface ConversationHistory {
-  messages: ReceivedChatMessage[];
-  fileAttachments: Array<{
-    id: string;
-    filename: string;
-    fileSize: number;
-    fileExtension: string;
-    timestamp: number;
-  }>;
-  demoAttachments: Array<{
-    id: string;
-    liveUrl: string;
-    timestamp: number;
-  }>;
+  items: TimelineItem[];
 }
 
 interface HistoryViewProps {
@@ -40,29 +49,64 @@ interface HistoryViewProps {
   onStartNewCall: () => void;
 }
 
-type TimelineItem =
-  | { type: 'message'; data: ReceivedChatMessage }
-  | { type: 'file'; data: ConversationHistory['fileAttachments'][0] }
-  | { type: 'demo'; data: ConversationHistory['demoAttachments'][0] };
-
 export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
-  // Combine messages and attachments into a single timeline sorted by timestamp
-  const timelineItems = useMemo(() => {
-    const items: TimelineItem[] = [
-      ...history.messages.map((msg) => ({ type: 'message' as const, data: msg })),
-      ...history.fileAttachments.map((file) => ({ type: 'file' as const, data: file })),
-      ...history.demoAttachments.map((demo) => ({ type: 'demo' as const, data: demo })),
-    ];
+  // Calculate which message each demo should be attached to (one-to-one mapping)
+  const demoToMessageMap = useMemo(() => {
+    const map = new Map<string, string>(); // demo.id -> message.id
 
-    // Sort by timestamp
-    items.sort((a, b) => {
-      const timestampA = a.type === 'message' ? a.data.timestamp : a.data.timestamp;
-      const timestampB = b.type === 'message' ? b.data.timestamp : b.data.timestamp;
-      return timestampA - timestampB;
+    // Get all messages and demos from the unified array
+    const messages = history.items.filter((item) => item.type === 'message') as Array<
+      Extract<TimelineItem, { type: 'message' }>
+    >;
+    const demos = history.items.filter((item) => item.type === 'demo') as Array<
+      Extract<TimelineItem, { type: 'demo' }>
+    >;
+
+    // First pass: Match demos to messages that mention demo keywords
+    demos.forEach((demo) => {
+      const matchingMessage = messages.find((msg) => {
+        if (msg.data.from?.isLocal) return false;
+        const msgLower = msg.data.message.toLowerCase();
+        const mentionsDemo =
+          msgLower.includes('demo') || msgLower.includes('showing') || msgLower.includes('browser');
+        if (mentionsDemo) {
+          const timeDiff = Math.abs(demo.timestamp.getTime() - msg.timestamp.getTime());
+          return timeDiff < 15000;
+        }
+        return false;
+      });
+
+      if (matchingMessage) {
+        map.set(demo.data.id, matchingMessage.data.id);
+      }
     });
 
-    return items;
+    // Second pass: Match remaining demos to closest messages
+    demos.forEach((demo) => {
+      if (map.has(demo.data.id)) return; // Already matched
+
+      const closestMessage = messages
+        .filter((msg) => !msg.data.from?.isLocal)
+        .reduce(
+          (closest, msg) => {
+            if (!closest) return msg;
+            const closestDiff = Math.abs(demo.timestamp.getTime() - closest.timestamp.getTime());
+            const msgDiff = Math.abs(demo.timestamp.getTime() - msg.timestamp.getTime());
+            return msgDiff < closestDiff && msgDiff < 10000 ? msg : closest;
+          },
+          null as Extract<TimelineItem, { type: 'message' }> | null
+        );
+
+      if (closestMessage) {
+        map.set(demo.data.id, closestMessage.data.id);
+      }
+    });
+
+    return map;
   }, [history]);
+
+  // Timeline is already sorted, just use it directly
+  const timelineItems = history.items;
 
   const locale = navigator?.language ?? 'en-US';
 
@@ -100,27 +144,30 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       const hasBeenEdited = !!message.editTimestamp;
 
                       // Find attachments that were sent close to this message (within 10 seconds)
-                      const recentFiles =
-                        messageOrigin === 'remote'
-                          ? history.fileAttachments.filter(
-                              (file) => Math.abs(file.timestamp - message.timestamp) < 10000
-                            )
-                          : [];
-                      // Find demo attachments (within 30 seconds, or if message mentions demo within 60 seconds)
-                      const messageLower = message.message.toLowerCase();
-                      const mentionsDemo =
-                        messageLower.includes('demo') || messageLower.includes('showing');
-                      const recentDemos =
-                        messageOrigin === 'remote'
-                          ? history.demoAttachments.filter((demo) => {
-                              const timeDiff = Math.abs(demo.timestamp - message.timestamp);
-                              // Match if within 30 seconds OR if message mentions demo and demo was added within 60 seconds
-                              return timeDiff < 30000 || (mentionsDemo && timeDiff < 60000);
-                            })
-                          : [];
+                      const recentFiles = timelineItems
+                        .filter(
+                          (i) =>
+                            i.type === 'file' &&
+                            messageOrigin === 'remote' &&
+                            Math.abs(i.timestamp.getTime() - item.timestamp.getTime()) < 10000
+                        )
+                        .map((i) => (i.type === 'file' ? i : null))
+                        .filter((i): i is Extract<TimelineItem, { type: 'file' }> => i !== null);
 
-                      const time = new Date(message.timestamp);
-                      const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
+                      // Find demo attachments that are matched to this message (one-to-one mapping)
+                      const recentDemos = timelineItems
+                        .filter(
+                          (i) =>
+                            i.type === 'demo' &&
+                            messageOrigin === 'remote' &&
+                            demoToMessageMap.get(i.data.id) === message.id
+                        )
+                        .map((i) => (i.type === 'demo' ? i : null))
+                        .filter((i): i is Extract<TimelineItem, { type: 'demo' }> => i !== null);
+
+                      const title = item.timestamp.toLocaleTimeString(locale, {
+                        timeStyle: 'full',
+                      });
 
                       return (
                         <li
@@ -137,7 +184,7 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                           >
                             <span className="font-mono text-xs opacity-0 transition-opacity ease-linear group-hover:opacity-100">
                               {hasBeenEdited && '*'}
-                              {time.toLocaleTimeString(locale, { timeStyle: 'short' })}
+                              {item.timestamp.toLocaleTimeString(locale, { timeStyle: 'short' })}
                             </span>
                           </header>
                           <div
@@ -152,10 +199,10 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                               <div className="mt-2 space-y-2">
                                 {recentFiles.map((file) => (
                                   <FileAttachment
-                                    key={file.id}
-                                    filename={file.filename}
-                                    fileSize={file.fileSize}
-                                    fileExtension={file.fileExtension}
+                                    key={file.data.id}
+                                    filename={file.data.filename}
+                                    fileSize={file.data.fileSize}
+                                    fileExtension={file.data.fileExtension}
                                     className="text-xs"
                                   />
                                 ))}
@@ -165,7 +212,7 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                               <div className="mt-2 space-y-2">
                                 {recentDemos.map((demo) => (
                                   <div
-                                    key={demo.id}
+                                    key={demo.data.id}
                                     className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all"
                                   >
                                     <div className="flex items-center gap-3">
@@ -195,9 +242,11 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       // Show standalone file attachments that weren't associated with a message
                       const file = item.data;
                       // Check if this file was already shown with a message
-                      const wasShownWithMessage = history.messages.some(
-                        (msg) =>
-                          !msg.from?.isLocal && Math.abs(msg.timestamp - file.timestamp) < 10000
+                      const wasShownWithMessage = timelineItems.some(
+                        (i) =>
+                          i.type === 'message' &&
+                          !i.data.from?.isLocal &&
+                          Math.abs(i.timestamp.getTime() - item.timestamp.getTime()) < 10000
                       );
 
                       if (wasShownWithMessage) {
@@ -216,17 +265,8 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                     } else if (item.type === 'demo') {
                       // Show standalone demo attachments that weren't associated with a message
                       const demo = item.data;
-                      // Check if this demo was already shown with a message
-                      const wasShownWithMessage = history.messages.some((msg) => {
-                        if (msg.from?.isLocal) return false;
-                        const timeDiff = Math.abs(msg.timestamp - demo.timestamp);
-                        const msgLower = msg.message.toLowerCase();
-                        const mentionsDemo =
-                          msgLower.includes('demo') || msgLower.includes('showing');
-                        return timeDiff < 30000 || (mentionsDemo && timeDiff < 60000);
-                      });
-
-                      if (wasShownWithMessage) {
+                      // Check if this demo was already matched to a message
+                      if (demoToMessageMap.has(demo.id)) {
                         return null;
                       }
 
