@@ -99,18 +99,24 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       const messageOrigin = message.from?.isLocal ? 'local' : 'remote';
                       const hasBeenEdited = !!message.editTimestamp;
 
-                      // Find attachments that were sent close to this message (within 5 seconds)
+                      // Find attachments that were sent close to this message (within 10 seconds)
                       const recentFiles =
                         messageOrigin === 'remote'
                           ? history.fileAttachments.filter(
-                              (file) => Math.abs(file.timestamp - message.timestamp) < 5000
+                              (file) => Math.abs(file.timestamp - message.timestamp) < 10000
                             )
                           : [];
+                      // Find demo attachments (within 30 seconds, or if message mentions demo within 60 seconds)
+                      const messageLower = message.message.toLowerCase();
+                      const mentionsDemo =
+                        messageLower.includes('demo') || messageLower.includes('showing');
                       const recentDemos =
                         messageOrigin === 'remote'
-                          ? history.demoAttachments.filter(
-                              (demo) => Math.abs(demo.timestamp - message.timestamp) < 5000
-                            )
+                          ? history.demoAttachments.filter((demo) => {
+                              const timeDiff = Math.abs(demo.timestamp - message.timestamp);
+                              // Match if within 30 seconds OR if message mentions demo and demo was added within 60 seconds
+                              return timeDiff < 30000 || (mentionsDemo && timeDiff < 60000);
+                            })
                           : [];
 
                       const time = new Date(message.timestamp);
@@ -191,7 +197,7 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       // Check if this file was already shown with a message
                       const wasShownWithMessage = history.messages.some(
                         (msg) =>
-                          !msg.from?.isLocal && Math.abs(msg.timestamp - file.timestamp) < 5000
+                          !msg.from?.isLocal && Math.abs(msg.timestamp - file.timestamp) < 10000
                       );
 
                       if (wasShownWithMessage) {
@@ -199,7 +205,7 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       }
 
                       return (
-                        <div key={`file-${file.id}`} className="ml-auto max-w-md">
+                        <div key={`file-${file.id}`} className="mr-auto max-w-md">
                           <FileAttachment
                             filename={file.filename}
                             fileSize={file.fileSize}
@@ -211,17 +217,21 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
                       // Show standalone demo attachments that weren't associated with a message
                       const demo = item.data;
                       // Check if this demo was already shown with a message
-                      const wasShownWithMessage = history.messages.some(
-                        (msg) =>
-                          !msg.from?.isLocal && Math.abs(msg.timestamp - demo.timestamp) < 5000
-                      );
+                      const wasShownWithMessage = history.messages.some((msg) => {
+                        if (msg.from?.isLocal) return false;
+                        const timeDiff = Math.abs(msg.timestamp - demo.timestamp);
+                        const msgLower = msg.message.toLowerCase();
+                        const mentionsDemo =
+                          msgLower.includes('demo') || msgLower.includes('showing');
+                        return timeDiff < 30000 || (mentionsDemo && timeDiff < 60000);
+                      });
 
                       if (wasShownWithMessage) {
                         return null;
                       }
 
                       return (
-                        <div key={`demo-${demo.id}`} className="ml-auto max-w-md">
+                        <div key={`demo-${demo.id}`} className="mr-auto max-w-md">
                           <div className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all">
                             <div className="flex items-center gap-3">
                               <div className="text-2xl">🎬</div>
