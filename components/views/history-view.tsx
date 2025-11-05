@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
 import type { ReceivedChatMessage } from '@livekit/components-react';
 import { FileAttachment } from '@/components/features/attachments/file-attachment';
-import { ChatTranscript } from '@/components/features/chat/chat-transcript';
+import { ChatEntry } from '@/components/features/chat/chat-entry';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area/scroll-area';
 
@@ -40,7 +40,32 @@ interface HistoryViewProps {
   onStartNewCall: () => void;
 }
 
+type TimelineItem =
+  | { type: 'message'; data: ReceivedChatMessage }
+  | { type: 'file'; data: ConversationHistory['fileAttachments'][0] }
+  | { type: 'demo'; data: ConversationHistory['demoAttachments'][0] };
+
 export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
+  // Combine messages and attachments into a single timeline sorted by timestamp
+  const timelineItems = useMemo(() => {
+    const items: TimelineItem[] = [
+      ...history.messages.map((msg) => ({ type: 'message' as const, data: msg })),
+      ...history.fileAttachments.map((file) => ({ type: 'file' as const, data: file })),
+      ...history.demoAttachments.map((demo) => ({ type: 'demo' as const, data: demo })),
+    ];
+
+    // Sort by timestamp
+    items.sort((a, b) => {
+      const timestampA = a.type === 'message' ? a.data.timestamp : a.data.timestamp;
+      const timestampB = b.type === 'message' ? b.data.timestamp : b.data.timestamp;
+      return timestampA - timestampB;
+    });
+
+    return items;
+  }, [history]);
+
+  const locale = navigator?.language ?? 'en-US';
+
   return (
     <MotionHistoryView
       {...VIEW_MOTION_PROPS}
@@ -55,94 +80,153 @@ export const HistoryView = ({ history, onStartNewCall }: HistoryViewProps) => {
           </p>
         </div>
 
-        {/* Content Area */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Side - Chat Transcript */}
-          <div className="border-border bg-background/95 w-80 flex-shrink-0 border-r backdrop-blur-sm">
-            <div className="flex h-full flex-col">
-              {/* Transcript Header */}
-              <div className="border-border flex-shrink-0 border-b p-4">
-                <h3 className="text-foreground text-sm font-medium">Transcript</h3>
-              </div>
-
-              {/* Transcript Content */}
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="p-4">
-                    <ChatTranscript
-                      hidden={false}
-                      messages={history.messages}
-                      className="space-y-3"
-                    />
+        {/* Content Area - Single unified timeline */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="mx-auto max-w-4xl p-6">
+              <div className="space-y-4">
+                {timelineItems.length === 0 ? (
+                  <div className="text-muted-foreground flex items-center justify-center py-12 text-center">
+                    <div>
+                      <div className="mb-2 text-4xl">💬</div>
+                      <p className="text-sm">No conversation history</p>
+                    </div>
                   </div>
-                </ScrollArea>
-              </div>
-            </div>
-          </div>
+                ) : (
+                  timelineItems.map((item, index) => {
+                    if (item.type === 'message') {
+                      const message = item.data;
+                      const messageOrigin = message.from?.isLocal ? 'local' : 'remote';
+                      const hasBeenEdited = !!message.editTimestamp;
 
-          {/* Right Side - Attachments */}
-          <div className="relative flex-1 overflow-hidden">
-            <div className="flex h-full flex-col">
-              {/* Attachments Header */}
-              <div className="border-border flex-shrink-0 border-b p-4">
-                <h3 className="text-foreground text-sm font-medium">Attachments</h3>
-              </div>
+                      // Find attachments that were sent close to this message (within 5 seconds)
+                      const recentFiles =
+                        messageOrigin === 'remote'
+                          ? history.fileAttachments.filter(
+                              (file) => Math.abs(file.timestamp - message.timestamp) < 5000
+                            )
+                          : [];
+                      const recentDemos =
+                        messageOrigin === 'remote'
+                          ? history.demoAttachments.filter(
+                              (demo) => Math.abs(demo.timestamp - message.timestamp) < 5000
+                            )
+                          : [];
 
-              {/* Attachments Content */}
-              <div className="flex-1 overflow-auto">
-                <ScrollArea className="h-full">
-                  <div className="space-y-4 p-4">
-                    {/* File Attachments */}
-                    {history.fileAttachments.map((attachment) => (
-                      <FileAttachment
-                        key={attachment.id}
-                        filename={attachment.filename}
-                        fileSize={attachment.fileSize}
-                        fileExtension={attachment.fileExtension}
-                      />
-                    ))}
-
-                    {/* Demo Attachments - Placeholder Style */}
-                    {history.demoAttachments.map((demo) => (
-                      <div
-                        key={demo.id}
-                        className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-6 transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="text-4xl">🎬</div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-primary text-lg font-semibold">Live Demo</span>
-                              <span className="bg-primary/20 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                                DEMO
-                              </span>
+                      return (
+                        <div key={`message-${message.id}`}>
+                          <ChatEntry
+                            locale={locale}
+                            timestamp={message.timestamp}
+                            message={message.message}
+                            messageOrigin={messageOrigin}
+                            hasBeenEdited={hasBeenEdited}
+                          />
+                          {/* Show attachments inline with the message */}
+                          {recentFiles.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                              {recentFiles.map((file) => (
+                                <FileAttachment
+                                  key={file.id}
+                                  filename={file.filename}
+                                  fileSize={file.fileSize}
+                                  fileExtension={file.fileExtension}
+                                  className="text-xs"
+                                />
+                              ))}
                             </div>
-                            <div className="text-muted-foreground mt-1 text-sm">
-                              Browser automation was performed during this call
+                          )}
+                          {recentDemos.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                              {recentDemos.map((demo) => (
+                                <div
+                                  key={demo.id}
+                                  className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-2xl">🎬</div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-primary font-semibold">
+                                          Live Demo
+                                        </span>
+                                        <span className="bg-primary/20 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                                          DEMO
+                                        </span>
+                                      </div>
+                                      <div className="text-muted-foreground mt-0.5 text-xs">
+                                        Browser automation was performed
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                            <div className="text-muted-foreground/70 mt-2 text-xs">
-                              {new Date(demo.timestamp).toLocaleString()}
+                          )}
+                        </div>
+                      );
+                    } else if (item.type === 'file') {
+                      // Show standalone file attachments that weren't associated with a message
+                      const file = item.data;
+                      // Check if this file was already shown with a message
+                      const wasShownWithMessage = history.messages.some(
+                        (msg) =>
+                          !msg.from?.isLocal && Math.abs(msg.timestamp - file.timestamp) < 5000
+                      );
+
+                      if (wasShownWithMessage) {
+                        return null;
+                      }
+
+                      return (
+                        <div key={`file-${file.id}`} className="ml-auto max-w-md">
+                          <FileAttachment
+                            filename={file.filename}
+                            fileSize={file.fileSize}
+                            fileExtension={file.fileExtension}
+                          />
+                        </div>
+                      );
+                    } else if (item.type === 'demo') {
+                      // Show standalone demo attachments that weren't associated with a message
+                      const demo = item.data;
+                      // Check if this demo was already shown with a message
+                      const wasShownWithMessage = history.messages.some(
+                        (msg) =>
+                          !msg.from?.isLocal && Math.abs(msg.timestamp - demo.timestamp) < 5000
+                      );
+
+                      if (wasShownWithMessage) {
+                        return null;
+                      }
+
+                      return (
+                        <div key={`demo-${demo.id}`} className="ml-auto max-w-md">
+                          <div className="border-border from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border-primary/20 overflow-hidden rounded-lg border-2 bg-gradient-to-br p-4 transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">🎬</div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-primary font-semibold">Live Demo</span>
+                                  <span className="bg-primary/20 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                                    DEMO
+                                  </span>
+                                </div>
+                                <div className="text-muted-foreground mt-0.5 text-xs">
+                                  Browser automation was performed
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-
-                    {/* Empty State */}
-                    {history.fileAttachments.length === 0 &&
-                      history.demoAttachments.length === 0 && (
-                        <div className="text-muted-foreground flex h-full items-center justify-center py-12 text-center">
-                          <div>
-                            <div className="mb-2 text-4xl">📎</div>
-                            <p className="text-sm">No attachments in this conversation</p>
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                </ScrollArea>
+                      );
+                    }
+                    return null;
+                  })
+                )}
               </div>
             </div>
-          </div>
+          </ScrollArea>
         </div>
 
         {/* Bottom Button */}
