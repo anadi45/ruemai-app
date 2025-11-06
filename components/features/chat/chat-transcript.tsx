@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { type ReceivedChatMessage } from '@livekit/components-react';
 import { ChatEntry } from '@/components/features/chat/chat-entry';
 import { useDemoAttachments } from '@/hooks/useDemoAttachments';
@@ -16,78 +16,71 @@ export function ChatTranscript({ hidden = false, messages = [], className }: Cha
   const { attachments } = useFileAttachments();
   const { demos } = useDemoAttachments();
 
-  // Calculate which message each file should be attached to (one-to-one mapping)
-  const fileToMessageMap = useMemo(() => {
-    const map = new Map<string, string>(); // file.id -> message.id
+  // Stable bindings - once an attachment is bound to a message, it stays bound
+  const fileBindingsRef = useRef<Map<string, string>>(new Map());
+  const demoBindingsRef = useRef<Map<string, string>>(new Map());
+  const [bindingsVersion, setBindingsVersion] = useState(0);
 
-    const remoteMessages = messages.filter((msg) => !msg.from?.isLocal);
+  // Get all agent (remote) and user (local) messages, sorted by timestamp
+  const agentMessages = useMemo(() => {
+    return messages
+      .filter((msg) => !msg.from?.isLocal)
+      .sort((a, b) => a.timestamp - b.timestamp);
+  }, [messages]);
 
-    // Match files to closest messages (within 10 seconds)
+  const userMessages = useMemo(() => {
+    return messages
+      .filter((msg) => msg.from?.isLocal)
+      .sort((a, b) => a.timestamp - b.timestamp);
+  }, [messages]);
+
+  // Update bindings for new attachments that haven't been bound yet
+  useEffect(() => {
+    if (agentMessages.length === 0 || userMessages.length === 0) return;
+
+    const latestUserMessage = userMessages[userMessages.length - 1];
+    
+    // Find the latest agent message that comes after the latest user message
+    const agentMessagesAfterUser = agentMessages.filter(
+      (msg) => msg.timestamp > latestUserMessage.timestamp
+    );
+
+    if (agentMessagesAfterUser.length === 0) return;
+
+    const latestAgentMessageAfterUser = agentMessagesAfterUser[agentMessagesAfterUser.length - 1];
+
+    let bindingsUpdated = false;
+
+    // Bind new file attachments that haven't been bound yet
     attachments.forEach((file) => {
-      const closestMessage = remoteMessages.reduce(
-        (closest, msg) => {
-          const msgDiff = Math.abs(file.timestamp - msg.timestamp);
-          if (msgDiff >= 10000) return closest; // Outside time window
-          if (!closest) return msg;
-          const closestDiff = Math.abs(file.timestamp - closest.timestamp);
-          return msgDiff < closestDiff ? msg : closest;
-        },
-        null as ReceivedChatMessage | null
-      );
-
-      if (closestMessage) {
-        map.set(file.id, closestMessage.id);
+      if (!fileBindingsRef.current.has(file.id)) {
+        fileBindingsRef.current.set(file.id, latestAgentMessageAfterUser.id);
+        bindingsUpdated = true;
       }
     });
 
-    return map;
-  }, [messages, attachments]);
+    // Bind new demos that haven't been bound yet
+    demos.forEach((demo) => {
+      if (!demoBindingsRef.current.has(demo.id)) {
+        demoBindingsRef.current.set(demo.id, latestAgentMessageAfterUser.id);
+        bindingsUpdated = true;
+      }
+    });
 
-  // Calculate which message each demo should be attached to (one-to-one mapping)
+    // Trigger re-render if bindings were updated
+    if (bindingsUpdated) {
+      setBindingsVersion((v) => v + 1);
+    }
+  }, [agentMessages, userMessages, attachments, demos]);
+
+  // Convert refs to maps for rendering
+  const fileToMessageMap = useMemo(() => {
+    return new Map(fileBindingsRef.current);
+  }, [attachments, agentMessages, userMessages, bindingsVersion]);
+
   const demoToMessageMap = useMemo(() => {
-    const map = new Map<string, string>(); // demo.id -> message.id
-
-    const remoteMessages = messages.filter((msg) => !msg.from?.isLocal);
-
-    // First pass: Match demos to messages that mention demo keywords
-    demos.forEach((demo) => {
-      const matchingMessage = remoteMessages.find((msg) => {
-        const msgLower = msg.message.toLowerCase();
-        const mentionsDemo =
-          msgLower.includes('demo') || msgLower.includes('showing') || msgLower.includes('browser');
-        if (mentionsDemo) {
-          const timeDiff = Math.abs(demo.timestamp - msg.timestamp);
-          return timeDiff < 15000;
-        }
-        return false;
-      });
-
-      if (matchingMessage) {
-        map.set(demo.id, matchingMessage.id);
-      }
-    });
-
-    // Second pass: Match remaining demos to closest messages
-    demos.forEach((demo) => {
-      if (map.has(demo.id)) return; // Already matched
-
-      const closestMessage = remoteMessages.reduce(
-        (closest, msg) => {
-          if (!closest) return msg;
-          const closestDiff = Math.abs(demo.timestamp - closest.timestamp);
-          const msgDiff = Math.abs(demo.timestamp - msg.timestamp);
-          return msgDiff < closestDiff && msgDiff < 10000 ? msg : closest;
-        },
-        null as ReceivedChatMessage | null
-      );
-
-      if (closestMessage) {
-        map.set(demo.id, closestMessage.id);
-      }
-    });
-
-    return map;
-  }, [messages, demos]);
+    return new Map(demoBindingsRef.current);
+  }, [demos, agentMessages, userMessages, bindingsVersion]);
 
   if (hidden) {
     return null;
