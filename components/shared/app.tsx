@@ -17,7 +17,7 @@ export function App({ appConfig }: AppProps) {
     <FileAttachmentProvider>
       <DemoAttachmentProvider>
         <SessionProvider appConfig={appConfig}>
-          <main className="grid h-svh grid-cols-1 place-content-center">
+          <main className="grid h-svh grid-cols-1">
             <ViewController />
           </main>
           <StartAudio label="Start Audio" />
