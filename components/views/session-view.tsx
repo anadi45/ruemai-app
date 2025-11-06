@@ -124,10 +124,10 @@ export const SessionView = ({
         </div>
       </div>
 
-      {/* Bottom Control Bar */}
+      {/* Bottom Control Bar - Centered in Session Section */}
       <MotionBottom
         {...BOTTOM_VIEW_MOTION_PROPS}
-        className="fixed inset-x-3 bottom-0 z-50 md:inset-x-12"
+        className="fixed left-80 right-0 bottom-0 z-50 px-3 md:px-12"
       >
         {appConfig.isPreConnectBufferEnabled && (
           <PreConnectMessage messages={messages} className="pb-4" />
