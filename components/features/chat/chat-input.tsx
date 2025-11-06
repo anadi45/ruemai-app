@@ -52,7 +52,7 @@ export function ChatInput({
           disabled={!isAgentAvailable}
           placeholder="Type a message..."
           onChange={(e) => setMessage(e.target.value)}
-          className="border-input bg-background focus:ring-ring h-8 flex-1 rounded-md border px-3 py-1 text-sm focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-input bg-background h-8 flex-1 rounded-md border px-3 py-1 text-sm transition-all duration-200 focus:border-ring focus:ring-ring/30 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Button
           size="icon"
