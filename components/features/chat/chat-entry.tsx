@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { FileAttachment } from './file-attachment';
-import { DemoAttachment } from './demo-attachment';
-import { useFileAttachments } from '@/hooks/useFileAttachments';
+import { DemoAttachment } from '@/components/features/attachments/demo-attachment';
+import { FileAttachment } from '@/components/features/attachments/file-attachment';
 import { useDemoAttachments } from '@/hooks/useDemoAttachments';
+import { useFileAttachments } from '@/hooks/useFileAttachments';
+import { cn } from '@/lib/utils';
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   /** The locale to use for the timestamp. */
@@ -18,6 +18,12 @@ export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   name?: string;
   /** Whether the message has been edited. */
   hasBeenEdited?: boolean;
+  /** The message ID for attachment matching */
+  messageId?: string;
+  /** Map of file IDs to message IDs for one-to-one matching */
+  fileToMessageMap?: Map<string, string>;
+  /** Map of demo IDs to message IDs for one-to-one matching */
+  demoToMessageMap?: Map<string, string>;
 }
 
 export const ChatEntry = ({
@@ -27,6 +33,9 @@ export const ChatEntry = ({
   message,
   messageOrigin,
   hasBeenEdited = false,
+  messageId,
+  fileToMessageMap,
+  demoToMessageMap,
   className,
   ...props
 }: ChatEntryProps) => {
@@ -34,16 +43,20 @@ export const ChatEntry = ({
   const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
   const { attachments } = useFileAttachments();
   const { demos } = useDemoAttachments();
-  
-  // Find recent attachments (within last 5 seconds of this message)
-  const recentAttachments = attachments.filter(attachment => 
-    Math.abs(attachment.timestamp - timestamp) < 5000
-  );
-  
-  // Find recent demo attachments (within last 5 seconds of this message)
-  const recentDemos = demos.filter(demo => 
-    Math.abs(demo.timestamp - timestamp) < 5000
-  );
+
+  // Find file attachments that are matched to this message (one-to-one mapping)
+  // Only show attachments for agent messages (remote), not user messages (local)
+  const recentAttachments =
+    messageOrigin === 'remote' && messageId && fileToMessageMap
+      ? attachments.filter((attachment) => fileToMessageMap.get(attachment.id) === messageId)
+      : [];
+
+  // Find demo attachments that are matched to this message (one-to-one mapping)
+  // Only show demo attachments for agent messages (remote), not user messages (local)
+  const recentDemos =
+    messageOrigin === 'remote' && messageId && demoToMessageMap
+      ? demos.filter((demo) => demoToMessageMap.get(demo.id) === messageId)
+      : [];
 
   return (
     <li
@@ -79,7 +92,6 @@ export const ChatEntry = ({
                 filename={attachment.filename}
                 fileSize={attachment.fileSize}
                 fileExtension={attachment.fileExtension}
-                contentPreview={attachment.contentPreview}
                 className="text-xs"
               />
             ))}
@@ -88,11 +100,7 @@ export const ChatEntry = ({
         {recentDemos.length > 0 && (
           <div className="mt-2 space-y-2">
             {recentDemos.map((demo) => (
-              <DemoAttachment
-                key={demo.id}
-                liveUrl={demo.liveUrl}
-                className="text-xs"
-              />
+              <DemoAttachment key={demo.id} liveUrl={demo.liveUrl} className="text-xs" />
             ))}
           </div>
         )}

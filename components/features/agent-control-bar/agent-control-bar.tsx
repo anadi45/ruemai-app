@@ -3,9 +3,13 @@
 import { type HTMLAttributes, useCallback } from 'react';
 import { Track } from 'livekit-client';
 import { PhoneDisconnectIcon } from '@phosphor-icons/react/dist/ssr';
-import { useSession } from '@/components/app/session-provider';
-import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
-import { Button } from '@/components/livekit/button';
+import { TrackToggle } from '@/components/features/agent-control-bar/track-toggle';
+import { useSession } from '@/components/providers/session-provider';
+import { Button } from '@/components/ui/button';
+import type { ConversationHistory } from '@/components/views/history-view';
+import { useChatMessages } from '@/hooks/useChatMessages';
+import { useDemoAttachments } from '@/hooks/useDemoAttachments';
+import { useFileAttachments } from '@/hooks/useFileAttachments';
 import { cn } from '@/lib/utils';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
@@ -37,7 +41,10 @@ export function AgentControlBar({
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
   const publishPermissions = usePublishPermissions();
-  const { isSessionActive, endSession } = useSession();
+  const { isSessionActive, endSession, saveHistory } = useSession();
+  const messages = useChatMessages();
+  const { attachments } = useFileAttachments();
+  const { demos } = useDemoAttachments();
 
   const {
     micTrackRef,
@@ -51,9 +58,47 @@ export function AgentControlBar({
   } = useInputControls({ onDeviceError, saveUserChoices });
 
   const handleDisconnect = useCallback(async () => {
+    // Capture conversation history before ending session - build unified timeline array
+    const items: ConversationHistory['items'] = [
+      // Add all messages
+      ...messages.map((msg) => ({
+        type: 'message' as const,
+        data: msg,
+        timestamp: new Date(msg.timestamp),
+      })),
+      // Add all file attachments
+      ...attachments.map((file) => ({
+        type: 'file' as const,
+        data: {
+          id: file.id,
+          filename: file.filename,
+          fileSize: file.fileSize,
+          fileExtension: file.fileExtension,
+        },
+        timestamp: new Date(file.timestamp),
+      })),
+      // Add all demo attachments
+      ...demos.map((demo) => ({
+        type: 'demo' as const,
+        data: {
+          id: demo.id,
+          liveUrl: demo.liveUrl,
+        },
+        timestamp: new Date(demo.timestamp),
+      })),
+    ];
+
+    // Sort by timestamp
+    items.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    const history: ConversationHistory = {
+      items,
+    };
+    saveHistory(history);
+
     endSession();
     onDisconnect?.();
-  }, [endSession, onDisconnect]);
+  }, [endSession, onDisconnect, messages, attachments, demos, saveHistory]);
 
   const visibleControls = {
     leave: controls?.leave ?? true,

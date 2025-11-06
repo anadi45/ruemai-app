@@ -7,8 +7,6 @@ export interface FileAttachment {
   filename: string;
   fileSize: number;
   fileExtension: string;
-  filePath: string;
-  contentPreview?: string;
   timestamp: number;
 }
 

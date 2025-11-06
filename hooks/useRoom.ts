@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Room, RoomEvent, TokenSource, RpcError, RpcInvocationData } from 'livekit-client';
 import { AppConfig } from '@/app-config';
-import { toastAlert } from '@/components/livekit/alert-toast';
+import { toastAlert } from '@/components/ui/alert-toast';
 import { useFileAttachments } from './useFileAttachments';
 import { useDemoAttachments } from './useDemoAttachments';
 
@@ -24,8 +24,25 @@ export function useRoom(appConfig: AppConfig) {
       });
     }
 
+    // RPC method names to track
+    const RPC_METHODS = ['getUserLocation', 'presentFileToUser', 'presentDemoToUser'] as const;
+
+    // Unregister RPC methods if they exist
+    function unregisterRpcMethods() {
+      RPC_METHODS.forEach((method) => {
+        try {
+          room.unregisterRpcMethod(method);
+        } catch (error) {
+          // Ignore errors if method wasn't registered
+        }
+      });
+    }
+
     // Register RPC method for getting user location
     function registerRpcMethods() {
+      // Unregister any existing methods first to avoid duplicate registration errors
+      unregisterRpcMethods();
+
       room.registerRpcMethod(
         'getUserLocation',
         async (data: RpcInvocationData) => {
@@ -50,7 +67,7 @@ export function useRoom(appConfig: AppConfig) {
 
       // Register RPC method for file attachments
       room.registerRpcMethod(
-        'attachFile',
+        'presentFileToUser',
         async (data: RpcInvocationData) => {
           try {
             const fileInfo = JSON.parse(data.payload);
@@ -61,8 +78,6 @@ export function useRoom(appConfig: AppConfig) {
               filename: fileInfo.filename,
               fileSize: fileInfo.fileSize,
               fileExtension: fileInfo.fileExtension,
-              filePath: fileInfo.filePath,
-              contentPreview: fileInfo.contentPreview,
             });
             
             return JSON.stringify({ success: true });
@@ -74,7 +89,7 @@ export function useRoom(appConfig: AppConfig) {
 
       // Register RPC method for demo attachments
       room.registerRpcMethod(
-        'demo',
+        'presentDemoToUser',
         async (data: RpcInvocationData) => {
           try {
             const demoInfo = JSON.parse(data.payload);
@@ -103,6 +118,8 @@ export function useRoom(appConfig: AppConfig) {
       room.off(RoomEvent.Disconnected, onDisconnected);
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
       room.off(RoomEvent.Connected, registerRpcMethods);
+      // Unregister RPC methods on cleanup
+      unregisterRpcMethods();
     };
   }, [room, addFileAttachment, addDemoAttachment]);
 

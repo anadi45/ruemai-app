@@ -4,22 +4,22 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { useChat } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
-import { ChatTranscript } from '@/components/app/chat-transcript';
-import { PreConnectMessage } from '@/components/app/preconnect-message';
-import { TileLayout } from '@/components/app/tile-layout';
 import {
   AgentControlBar,
   type ControlBarControls,
-} from '@/components/livekit/agent-control-bar/agent-control-bar';
-import { ChatInput } from '@/components/livekit/agent-control-bar/chat-input';
-import { CameraPreview } from '@/components/livekit/camera-preview';
+} from '@/components/features/agent-control-bar/agent-control-bar';
+import { DemoAttachment } from '@/components/features/attachments/demo-attachment';
+import { ChatInput } from '@/components/features/chat/chat-input';
+import { ChatTranscript } from '@/components/features/chat/chat-transcript';
+import { PreConnectMessage } from '@/components/features/chat/preconnect-message';
+import { CameraPreview } from '@/components/features/media/camera-preview';
+import { TileLayout } from '@/components/features/media/tile-layout';
+import { ScrollArea } from '@/components/ui/scroll-area/scroll-area';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
 import { useDemoAttachments } from '@/hooks/useDemoAttachments';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '../livekit/scroll-area/scroll-area';
-import { DemoAttachment } from '@/components/livekit/demo-attachment';
 
 const MotionBottom = motion.create('div');
 
@@ -90,14 +90,9 @@ export const SessionView = ({
       <CameraPreview />
 
       {/* Main Layout - Two Column */}
-      <div className="flex h-screen">
-        {/* Left Side - Video Tiles */}
-        <div className="relative flex-1 overflow-hidden">
-          <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
-        </div>
-
-        {/* Right Side - Chat Transcript */}
-        <div className="border-border bg-background/95 w-80 flex-shrink-0 border-l backdrop-blur-sm">
+      <div className="flex h-[calc(100vh-180px)]">
+        {/* Left Side - Chat Transcript */}
+        <div className="border-border bg-background/95 w-80 flex-shrink-0 border-r backdrop-blur-sm">
           <div className="flex h-full flex-col">
             {/* Transcript Header */}
             <div className="border-border flex-shrink-0 border-b p-4">
@@ -114,25 +109,31 @@ export const SessionView = ({
             </div>
           </div>
         </div>
+
+        {/* Right Side - Video Tiles or Demo */}
+        <div className="relative flex-1 overflow-hidden">
+          {latestDemo ? (
+            <DemoAttachment
+              liveUrl={latestDemo.liveUrl}
+              className="h-full w-full rounded-none border-0"
+              fullScreen
+            />
+          ) : (
+            <TileLayout chatOpen={false} hasActiveDemo={!!latestDemo} />
+          )}
+        </div>
       </div>
 
-      {/* Bottom Control Bar */}
+      {/* Bottom Control Bar - Centered in Session Section */}
       <MotionBottom
         {...BOTTOM_VIEW_MOTION_PROPS}
-        className="fixed inset-x-3 bottom-0 z-50 md:inset-x-12"
+        className="fixed left-80 right-0 bottom-0 z-50 px-3 md:px-12"
       >
         {appConfig.isPreConnectBufferEnabled && (
           <PreConnectMessage messages={messages} className="pb-4" />
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
-
-          {/* Demo Iframe - Above Chat Input */}
-          {latestDemo && (
-            <div className="mb-4">
-              <DemoAttachment liveUrl={latestDemo.liveUrl} />
-            </div>
-          )}
 
           {/* Text Input - Always Visible */}
           <div className="mb-4">
